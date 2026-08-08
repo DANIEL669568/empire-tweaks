@@ -1446,7 +1446,7 @@ window.startDownload = async () => {
 
   // בדוק מול השרת שה-license תקין
   try {
-    const res = await fetch("http://localhost:5000/verify-license", {
+    const res = await fetch("https://empire-tweaks.onrender.com/verify-license", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ key: licenseKey })
@@ -1657,7 +1657,7 @@ function initPayPalFields() {
   paypal.HostedFields.render({
     createOrder: async () => {
       const email = document.getElementById("checkoutEmail").value.trim();
-      const res = await fetch("http://localhost:5000/create-paypal-order", {
+      const res = await fetch("https://empire-tweaks.onrender.com/create-paypal-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, amount: "7.00" })
@@ -1730,7 +1730,7 @@ window.submitCheckout = async () => {
     });
 
     // Capture order
-    const res = await fetch("http://localhost:5000/capture-paypal-order", {
+    const res = await fetch("https://empire-tweaks.onrender.com/capture-paypal-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ orderID: orderId, email })
