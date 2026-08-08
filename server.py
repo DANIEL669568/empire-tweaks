@@ -7,7 +7,7 @@ import string
 import base64
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=["*"], supports_credentials=True)
 
 # ══ PAYPAL CONFIG ══════════════════════════════════════════════
 PAYPAL_CLIENT_ID = "BAAZi4IqjVn0fgavoJLIKsFpqpiX9hEphBKpQ-6b6QE3TCy_cY7Ts9FCXI52e-KyMca6WN1a-ZtCT7FvSA"
@@ -180,4 +180,4 @@ def verify_license():
 
 if __name__ == "__main__":
     print("Empire Tweaks Server — http://localhost:5000")
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
