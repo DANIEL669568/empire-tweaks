@@ -179,4 +179,4 @@ def verify_license():
 
 if __name__ == "__main__":
     print("Empire Tweaks Server — http://localhost:5000")
-    app.run(port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000)
