@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta name="google-site-verification" content="GFtg2HdxzJ9AuqHJG2Si5CQVk7sOy6ZrlwaYcUoowKg" />
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Empire Tweaks — Dominate Your Windows</title>
@@ -36,6 +37,22 @@ body{
 }
 a{text-decoration:none;color:inherit}
 #canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5}
+
+/* ── LANGUAGE SELECTOR ── */
+.lang-selector{position:relative;margin-left:8px}
+.lang-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  color:var(--white);padding:6px 12px;border-radius:8px;cursor:pointer;
+  font-size:13px;font-family:"Inter",sans-serif;transition:all .2s}
+.lang-btn:hover{background:rgba(255,255,255,.12)}
+.lang-menu{position:absolute;top:calc(100% + 8px);right:0;
+  background:var(--card2);border:1px solid rgba(255,255,255,.12);
+  border-radius:10px;padding:6px;min-width:140px;z-index:999;
+  display:none;box-shadow:0 20px 40px rgba(0,0,0,.5)}
+.lang-menu.show{display:block}
+.lang-menu div{padding:8px 14px;border-radius:7px;cursor:pointer;
+  font-size:13px;transition:background .15s}
+.lang-menu div:hover{background:rgba(255,255,255,.08)}
+[dir="rtl"] body{font-family:"Inter",sans-serif}
 
 /* ── AUTH MODAL ── */
 .modal-overlay{
@@ -804,7 +821,16 @@ footer{background:transparent;border-top:1px solid var(--border);padding:70px 56
   </ul>
   <!-- Nav auth area -->
   <div id="navAuth">
-    <button class="nav-btn" onclick="openModal()">Sign In</button>
+    <button class="nav-btn" onclick="openModal()"><span data-i18n="signIn">Sign In</span></button>
+  </div>
+  <div class="lang-selector">
+    <button class="lang-btn" onclick="toggleLangMenu()">🌐 <span id="langLabel">EN</span> ▾</button>
+    <div class="lang-menu" id="langMenu">
+      <div onclick="setLang('en')">🇺🇸 English</div>
+      <div onclick="setLang('he')">🇮🇱 עברית</div>
+      <div onclick="setLang('ar')">🇸🇦 العربية</div>
+      <div onclick="setLang('ru')">🇷🇺 Русский</div>
+    </div>
   </div>
 </nav>
 
@@ -1616,208 +1642,67 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
 });
 </script>
 
-<!-- Stripe.js -->
+<!-- PayPal JS SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id=BAAZi4IqjVn0fgavoJLIKsFpqpiX9hEphBKpQ-6b6QE3TCy_cY7Ts9FCXI52e-KyMca6WN1a-ZtCT7FvSA&currency=USD&components=hosted-fields,buttons&intent=capture"></script>
 <script>
-  // Stripe public key — safe to expose (PK only, not SK)
-  window.STRIPE_PUBLIC_KEY = "pk_test_51TJvw2LPNXqByMY3gQzxgGLaqfn5JTbgXGdvUPXJkX2vmKTHJDRHPS7iAPmMInDkkS0E4noT6feOLYIMpDwV4xHi007QATz7jr";
-</script>
-<script src="https://js.stripe.com/v3/"></script>
-<script>
-const STRIPE_PK = window.STRIPE_PUBLIC_KEY || "";
-let stripe, cardElement, paymentIntentClientSecret;
+// ══ PAYPAL PAYMENT ══════════════════════════════════════
 
-function initStripe() {
-  if (window._stripeInit) return;
-  window._stripeInit = true;
-  stripe = Stripe(STRIPE_PK);
-  const elements = stripe.elements({
-    appearance: {
-      theme: "night",
-      variables: {
-        colorPrimary: "#42a5f5",
-        colorBackground: "#0c0c13",
-        colorText: "#ffffff",
-        colorDanger: "#ef4444",
-        fontFamily: "Inter, sans-serif",
-        borderRadius: "6px",
-      }
+const PAYPAL_CLIENT_ID = "BAAZi4IqjVn0fgavoJLIKsFpqpiX9hEphBKpQ-6b6QE3TCy_cY7Ts9FCXI52e-KyMca6WN1a-ZtCT7FvSA";
+let _paypalInitDone = false;
+
+function initPayPalFields() {
+  if (_paypalInitDone || !paypal.HostedFields) return;
+  _paypalInitDone = true;
+
+  paypal.HostedFields.render({
+    createOrder: async () => {
+      const email = document.getElementById("checkoutEmail").value.trim();
+      const res = await fetch("http://localhost:5000/create-paypal-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, amount: "7.00" })
+      });
+      const data = await res.json();
+      return data.orderID;
+    },
+    styles: {
+      "input": {
+        "color": "#ffffff",
+        "font-family": "Inter, sans-serif",
+        "font-size": "15px"
+      },
+      ":placeholder": { "color": "#2e2e48" },
+      ".valid": { "color": "#ffffff" },
+      ".invalid": { "color": "#ef4444" }
+    },
+    fields: {
+      number: { selector: "#checkoutCardNumber", placeholder: "1234 5678 9012 3456" },
+      expirationDate: { selector: "#checkoutCardExpiry", placeholder: "MM/YY" },
+      cvv: { selector: "#checkoutCardCvc", placeholder: "CVC" }
     }
-  });
-  cardElement = elements.create("card", {
-    style: {
-      base: {
-        color: "#ffffff",
-        fontFamily: "Inter, sans-serif",
-        fontSize: "15px",
-        "::placeholder": { color: "#353550" }
-      }
-    }
-  });
-  cardElement.mount("#cardElement");
-  cardElement.on("focus", () => {
-    document.getElementById("cardElement").style.borderColor = "var(--b3)";
-    document.getElementById("cardElement").style.boxShadow = "0 0 0 3px rgba(25,118,210,.15)";
-  });
-  cardElement.on("blur", () => {
-    document.getElementById("cardElement").style.borderColor = "var(--border)";
-    document.getElementById("cardElement").style.boxShadow = "none";
-  });
+  }).then(hf => {
+    window._paypalHF = hf;
+    // focus effects
+    ["checkoutCardNumber","checkoutCardExpiry","checkoutCardCvc"].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener("focus", () => el.classList.add("focused"), true);
+      el.addEventListener("blur",  () => el.classList.remove("focused"), true);
+    });
+  }).catch(e => console.error("PayPal HostedFields error:", e));
 }
-
-// Init Stripe when Pro modal opens
-const _origOpenPro = window.openProModal;
 
 window.openProModal = () => {
   const user = window._authCurrentUser;
   if (!user) { openModal(); return; }
-  // Close any open modal
-  closeProModal && closeProModal();
-  // Show checkout section and scroll to it
   const section = document.getElementById("checkout");
   section.classList.add("show");
   setTimeout(() => {
     section.scrollIntoView({ behavior: "smooth", block: "start" });
-    initCheckoutStripe();
+    if (paypal.HostedFields && paypal.HostedFields.isEligible()) {
+      initPayPalFields();
+    }
   }, 50);
 };
-
-
-window.submitPayment = async () => {
-  const email = document.getElementById("payEmail").value.trim();
-  const errEl = document.getElementById("payErr");
-  const btn   = document.getElementById("payBtn");
-  const spin  = document.getElementById("paySpin");
-  const icon  = document.getElementById("payIcon");
-  const label = document.getElementById("payBtnLabel");
-
-  errEl.className = "auth-err";
-  if (!email) { showPayErr("Please enter your email address."); return; }
-  if (!email.includes("@")) { showPayErr("Please enter a valid email address."); return; }
-
-  btn.disabled = true;
-  spin.style.display = "block";
-  icon.style.display = "none";
-  label.textContent = "Processing...";
-
-  try {
-    // 1. צור PaymentIntent בשרת
-    const res = await fetch("http://localhost:5000/create-payment-intent", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
-    });
-    const { clientSecret, error } = await res.json();
-    if (error) { showPayErr(error); resetPayBtn(); return; }
-
-    // 2. אשר תשלום עם Stripe
-    const { paymentIntent, error: stripeError } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: cardElement,
-        billing_details: { email }
-      }
-    });
-
-    if (stripeError) { showPayErr(stripeError.message); resetPayBtn(); return; }
-
-    // 3. קבל license key מהשרת
-    const confirmRes = await fetch("http://localhost:5000/confirm-payment", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paymentIntentId: paymentIntent.id, email })
-    });
-    const result = await confirmRes.json();
-
-    if (result.success) {
-      // הצג success
-      document.getElementById("payStep1").style.display = "none";
-      document.getElementById("payStep2").style.display = "block";
-      document.getElementById("licenseDisplay").textContent = result.licenseKey;
-      window._licenseKey = result.licenseKey;
-      showToast("Payment successful! Pro is unlocked.", "success");
-    } else {
-      showPayErr(result.message || "Something went wrong.");
-      resetPayBtn();
-    }
-  } catch(e) {
-    showPayErr("Cannot connect to server. Make sure server.py is running.");
-    resetPayBtn();
-  }
-};
-
-function showPayErr(msg) {
-  const el = document.getElementById("payErr");
-  el.textContent = msg;
-  el.className = "auth-err show";
-}
-
-function resetPayBtn() {
-  const btn  = document.getElementById("payBtn");
-  const spin = document.getElementById("paySpin");
-  const icon = document.getElementById("payIcon");
-  const label = document.getElementById("payBtnLabel");
-  btn.disabled = false;
-  spin.style.display = "none";
-  icon.style.display = "block";
-  label.textContent = "Pay $7 — Unlock Pro";
-}
-
-
-let _checkoutStripe, _checkoutCard, _checkoutStripeInit = false;
-
-function initCheckoutStripe() {
-  if (_checkoutStripeInit) return;
-  _checkoutStripeInit = true;
-  _checkoutStripe = Stripe(window.STRIPE_PUBLIC_KEY || STRIPE_PK);
-
-  const elements = _checkoutStripe.elements({
-    appearance: {
-      theme: "night",
-      variables: {
-        colorPrimary: "#42a5f5",
-        colorBackground: "#0c0c13",
-        colorText: "#ffffff",
-        colorDanger: "#ef4444",
-        fontFamily: "Inter, sans-serif",
-        borderRadius: "6px",
-      }
-    }
-  });
-
-  const style = {
-    base: {
-      color: "#fff",
-      fontFamily: "Inter, sans-serif",
-      fontSize: "15px",
-      "::placeholder": { color: "#2e2e48" }
-    },
-    invalid: { color: "#ef4444" }
-  };
-
-  // מספר כרטיס
-  const cardNumber = elements.create("cardNumber", { style, placeholder: "1234 5678 9012 3456" });
-  cardNumber.mount("#checkoutCardNumber");
-
-  // תאריך
-  const cardExpiry = elements.create("cardExpiry", { style });
-  cardExpiry.mount("#checkoutCardExpiry");
-
-  // CVC
-  const cardCvc = elements.create("cardCvc", { style });
-  cardCvc.mount("#checkoutCardCvc");
-
-  // שמור reference ל-cardNumber לשימוש בתשלום
-  _checkoutCard = cardNumber;
-
-  // אפקט focus לכל שדה
-  [
-    { el: cardNumber, id: "checkoutCardNumber" },
-    { el: cardExpiry, id: "checkoutCardExpiry" },
-    { el: cardCvc,    id: "checkoutCardCvc" }
-  ].forEach(({ el, id }) => {
-    el.on("focus", () => document.getElementById(id).classList.add("focused"));
-    el.on("blur",  () => document.getElementById(id).classList.remove("focused"));
-  });
-}
 
 window.submitCheckout = async () => {
   const email = document.getElementById("checkoutEmail").value.trim();
@@ -1839,37 +1724,26 @@ window.submitCheckout = async () => {
   label.textContent = "Processing...";
 
   try {
-    const res = await fetch("http://localhost:5000/create-payment-intent", {
+    const { liabilityShifted, orderId } = await window._paypalHF.submit({
+      cardholderName: email,
+      billingAddress: { postalCode: "00000" }
+    });
+
+    // Capture order
+    const res = await fetch("http://localhost:5000/capture-paypal-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ orderID: orderId, email })
     });
-    const { clientSecret, error } = await res.json();
-    if (error) { showCheckoutErr(error); resetCheckoutBtn(); return; }
-
-    const { paymentIntent, error: stripeError } = await _checkoutStripe.confirmCardPayment(clientSecret, {
-      payment_method: { card: _checkoutCard, billing_details: { email } }
-    });
-
-    if (stripeError) { showCheckoutErr(stripeError.message); resetCheckoutBtn(); return; }
-
-    const confirmRes = await fetch("http://localhost:5000/confirm-payment", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paymentIntentId: paymentIntent.id, email })
-    });
-    const result = await confirmRes.json();
+    const result = await res.json();
 
     if (result.success) {
-      document.getElementById("payForm").style.display = "none";
-      document.getElementById("checkoutSuccess").classList.add("show");
-      document.getElementById("checkoutLicense").textContent = result.licenseKey;
-      // שמור license key בדפדפן
-      localStorage.setItem("et_license", result.licenseKey);
-      localStorage.setItem("et_email", email);
-      showToast("Pro unlocked! Welcome to Empire Tweaks Pro.", "success");
+      document.getElementById("checkoutStep1").style.display = "none";
+      document.getElementById("checkoutStep2").style.display = "block";
+      document.getElementById("checkoutLicenseDisplay").textContent = result.licenseKey;
+      showToast("Payment successful! Pro is unlocked.", "success");
     } else {
-      showCheckoutErr(result.message || "Something went wrong.");
+      showCheckoutErr(result.message || "Payment failed.");
       resetCheckoutBtn();
     }
   } catch(e) {
@@ -1885,23 +1759,144 @@ function showCheckoutErr(msg) {
 }
 
 function resetCheckoutBtn() {
-  document.getElementById("checkoutBtn").disabled = false;
-  document.getElementById("checkoutSpin").style.display = "none";
-  document.getElementById("checkoutIcon").style.display = "block";
-  document.getElementById("checkoutBtnLabel").textContent = "Pay $7 — Unlock Pro";
+  const btn  = document.getElementById("checkoutBtn");
+  const spin = document.getElementById("checkoutSpin");
+  const icon = document.getElementById("checkoutIcon");
+  const label = document.getElementById("checkoutBtnLabel");
+  btn.disabled = false;
+  spin.style.display = "none";
+  icon.style.display = "block";
+  label.textContent = "PAY $7 — UNLOCK PRO";
 }
 
-window.copyCheckoutLicense = () => {
-  const key = document.getElementById("checkoutLicense").textContent;
-  navigator.clipboard.writeText(key).then(() => showToast("License key copied!", "success"));
+// Update security text
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".pay-security").forEach(el => {
+    el.innerHTML = '🔒 Secured by PayPal &nbsp;&middot;&nbsp; 256-bit SSL encryption';
+  });
+  document.querySelectorAll(".auth-security").forEach(el => {
+    el.innerHTML = '🔒 Secured by PayPal &nbsp;&middot;&nbsp; 256-bit SSL encryption';
+  });
+});
+
+</script>
+
+<script>
+const i18n = {
+  en: {
+    signIn: "Sign In",
+    navDemo: "Demo", navFeatures: "Features", navReviews: "Reviews",
+    navPricing: "Pricing", navDownload: "Download",
+    heroTitle: "EMPIRE<br><span class='grad'>TWEAKS</span>",
+    heroSub: "50+ precision tools to kill bloatware, shield your privacy, and max out your FPS — without touching the command line.",
+    downloadFree: "Download Free", liveDemo: "Live Demo",
+    tweaks: "Tweaks", users: "K+ Users", rating: "Star Rating", fps: "Avg FPS Gain",
+    freePlan: "🆓 Free", proPlan: "👑 Pro", buyPro: "Buy Pro — $7",
+    payBtn: "PAY $7 — UNLOCK PRO",
+    dir: "ltr"
+  },
+  he: {
+    signIn: "התחבר",
+    navDemo: "דמו", navFeatures: "יכולות", navReviews: "ביקורות",
+    navPricing: "מחירים", navDownload: "הורדה",
+    heroTitle: "EMPIRE<br><span class='grad'>TWEAKS</span>",
+    heroSub: "50+ כלים מדויקים להרוג bloatware, להגן על הפרטיות שלך, ולמקסם FPS — בלי לגעת בשורת הפקודה.",
+    downloadFree: "הורד חינם", liveDemo: "דמו חי",
+    tweaks: "טוויקים", users: "K+ משתמשים", rating: "דירוג כוכבים", fps: "FPS ממוצע",
+    freePlan: "🆓 חינם", proPlan: "👑 פרו", buyPro: "קנה Pro — $7",
+    payBtn: "שלם $7 — פתח Pro",
+    dir: "rtl"
+  },
+  ar: {
+    signIn: "تسجيل الدخول",
+    navDemo: "عرض", navFeatures: "مميزات", navReviews: "مراجعات",
+    navPricing: "الأسعار", navDownload: "تحميل",
+    heroTitle: "EMPIRE<br><span class='grad'>TWEAKS</span>",
+    heroSub: "أكثر من 50 أداة دقيقة للقضاء على البرامج المزعجة وحماية خصوصيتك ورفع FPS — بدون سطر أوامر.",
+    downloadFree: "تحميل مجاني", liveDemo: "عرض مباشر",
+    tweaks: "تعديلات", users: "K+ مستخدم", rating: "تقييم النجوم", fps: "متوسط FPS",
+    freePlan: "🆓 مجاني", proPlan: "👑 برو", buyPro: "اشترِ Pro — $7",
+    payBtn: "ادفع $7 — افتح Pro",
+    dir: "rtl"
+  },
+  ru: {
+    signIn: "Войти",
+    navDemo: "Демо", navFeatures: "Функции", navReviews: "Отзывы",
+    navPricing: "Цены", navDownload: "Скачать",
+    heroTitle: "EMPIRE<br><span class='grad'>TWEAKS</span>",
+    heroSub: "50+ точных инструментов для устранения bloatware, защиты конфиденциальности и максимального FPS — без командной строки.",
+    downloadFree: "Скачать бесплатно", liveDemo: "Живое демо",
+    tweaks: "Твиков", users: "K+ Пользователей", rating: "Рейтинг звёзд", fps: "Средний FPS",
+    freePlan: "🆓 Бесплатно", proPlan: "👑 Про", buyPro: "Купить Pro — $7",
+    payBtn: "ПЛАТИТЬ $7 — ОТКРЫТЬ PRO",
+    dir: "ltr"
+  }
 };
 
-window.copyLicense = () => {
-  const key = document.getElementById("licenseDisplay").textContent;
-  navigator.clipboard.writeText(key).then(() => {
-    showToast("License key copied!", "success");
+let currentLang = localStorage.getItem("lang") || "en";
+
+function toggleLangMenu() {
+  document.getElementById("langMenu").classList.toggle("show");
+}
+
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".lang-selector")) {
+    document.getElementById("langMenu").classList.remove("show");
+  }
+});
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem("lang", lang);
+  document.getElementById("langMenu").classList.remove("show");
+  applyLang();
+}
+
+function applyLang() {
+  const t = i18n[currentLang];
+  if (!t) return;
+
+  // כיוון טקסט
+  document.documentElement.dir = t.dir;
+  document.documentElement.lang = currentLang;
+
+  // תווית שפה
+  const labels = {en:"EN", he:"עב", ar:"عر", ru:"RU"};
+  document.getElementById("langLabel").textContent = labels[currentLang];
+
+  // nav links
+  const navLinks = document.querySelectorAll(".nav-links a");
+  const navKeys = ["navDemo","navFeatures","navReviews","navPricing","navDownload"];
+  navLinks.forEach((a, i) => { if (navKeys[i]) a.textContent = t[navKeys[i]]; });
+
+  // i18n elements
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (t[key]) el.textContent = t[key];
   });
-};
+
+  // hero
+  const heroP = document.querySelector(".hero-p");
+  if (heroP) heroP.textContent = t.heroSub;
+
+  const dlBtn = document.querySelector(".hero-btns .btn-p");
+  if (dlBtn) {
+    dlBtn.childNodes[dlBtn.childNodes.length-1].textContent = " " + t.downloadFree;
+  }
+
+  // stat labels
+  const statLabels = document.querySelectorAll(".stat-l");
+  const statKeys = ["tweaks","users","rating","fps"];
+  statLabels.forEach((el, i) => { if (statKeys[i]) el.textContent = t[statKeys[i]]; });
+
+  // pay buttons
+  document.querySelectorAll("#payBtnLabel, #checkoutBtnLabel").forEach(el => {
+    el.textContent = t.payBtn;
+  });
+}
+
+// הפעל בטעינה
+applyLang();
 </script>
 </body>
 </html>
