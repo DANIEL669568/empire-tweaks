@@ -1,81 +1,157 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import stripe
+import requests
 import secrets
 import string
+import base64
 
 app = Flask(__name__)
 CORS(app)
 
-stripe.api_key = "sk_test_51TJvw2LPNXqByMY3Yi7d28qGnOU4MldIrIxGMWYZHK6A5Mpu9eeKQKfIBZbzLBXJfjSCJ0TZy29TsbcLPuL8RDaz00UDQ4fPQa"
+# ══ PAYPAL CONFIG ══════════════════════════════════════════════
+PAYPAL_CLIENT_ID = "BAAZi4IqjVn0fgavoJLIKsFpqpiX9hEphBKpQ-6b6QE3TCy_cY7Ts9FCXI52e-KyMca6WN1a-ZtCT7FvSA"
+PAYPAL_SECRET    = "ECZKmIwSsTNAXxVEh2EIMizy6Ifk8EZsOoU5HSegPpB0xB6Dudv_jfjzcfGmOiMgqi7w7FeCrR30M0OI"
+PAYPAL_BASE      = "https://api-m.paypal.com"  # Live
+
+# ══ FIREBASE ADMIN ══════════════════════════════════════════════
+import firebase_admin
+from firebase_admin import credentials, firestore
+
+try:
+    cred = credentials.Certificate("serviceAccountKey.json")
+    firebase_admin.initialize_app(cred)
+    db = firestore.client()
+    FIREBASE_OK = True
+    print("[+] Firebase connected")
+except Exception as e:
+    print(f"[!] Firebase not connected: {e}")
+    FIREBASE_OK = False
+    db = None
 
 activated_licenses = {}
-used_payment_intents = set()
 
 def generate_license_key():
     chars = string.ascii_uppercase + string.digits
     parts = ["".join(secrets.choice(chars) for _ in range(4)) for _ in range(3)]
     return "ET-" + "-".join(parts)
 
+def get_paypal_token():
+    credentials_str = f"{PAYPAL_CLIENT_ID}:{PAYPAL_SECRET}"
+    encoded = base64.b64encode(credentials_str.encode()).decode()
+    res = requests.post(
+        f"{PAYPAL_BASE}/v1/oauth2/token",
+        headers={
+            "Authorization": f"Basic {encoded}",
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        data="grant_type=client_credentials"
+    )
+    return res.json().get("access_token")
 
-@app.route("/create-payment-intent", methods=["POST"])
-def create_payment_intent():
+
+@app.route("/create-paypal-order", methods=["POST"])
+def create_paypal_order():
     try:
         data = request.json
-        intent = stripe.PaymentIntent.create(
-            amount=700,
-            currency="usd",
-            metadata={"email": data.get("email", "")}
+        email = data.get("email", "")
+        token = get_paypal_token()
+
+        res = requests.post(
+            f"{PAYPAL_BASE}/v2/checkout/orders",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "intent": "CAPTURE",
+                "purchase_units": [{
+                    "amount": {
+                        "currency_code": "USD",
+                        "value": "7.00"
+                    },
+                    "description": "Empire Tweaks Pro — Lifetime License",
+                    "custom_id": email
+                }]
+            }
         )
-        return jsonify({"clientSecret": intent.client_secret})
+        order = res.json()
+        return jsonify({"orderID": order["id"]})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
 
-@app.route("/confirm-payment", methods=["POST"])
-def confirm_payment():
+@app.route("/capture-paypal-order", methods=["POST"])
+def capture_paypal_order():
     try:
         data = request.json
-        payment_intent_id = data.get("paymentIntentId", "").strip()
-        email = data.get("email", "").strip()
+        order_id = data.get("orderID", "").strip()
+        email = data.get("email", "").strip().lower()
 
-        if not payment_intent_id:
-            return jsonify({"success": False, "message": "Missing payment ID."}), 400
+        if not order_id:
+            return jsonify({"success": False, "message": "Missing order ID."}), 400
 
-        # בדוק שלא השתמשנו בתשלום הזה כבר
-        if payment_intent_id in used_payment_intents:
-            return jsonify({"success": False, "message": "Payment already used."}), 402
+        # בדוק שלא השתמשנו בorder הזה כבר
+        if FIREBASE_OK:
+            already = db.collection("used_payments").document(order_id).get()
+            if already.exists:
+                return jsonify({"success": False, "message": "Payment already used."}), 402
 
-        # בדוק מול Stripe
-        intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+        token = get_paypal_token()
 
-        if intent.status != "succeeded":
-            return jsonify({"success": False, "message": f"Payment not completed ({intent.status})."}), 402
+        # Capture התשלום
+        res = requests.post(
+            f"{PAYPAL_BASE}/v2/checkout/orders/{order_id}/capture",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json"
+            }
+        )
+        result = res.json()
 
-        if intent.amount != 700 or intent.currency != "usd":
-            return jsonify({"success": False, "message": "Invalid payment amount."}), 402
+        if result.get("status") != "COMPLETED":
+            return jsonify({"success": False, "message": f"Payment not completed: {result.get('status')}"}), 402
 
-        # בדוק refund
-        charges = intent.get("charges", {}).get("data", [])
-        if charges:
-            charge = charges[0]
-            if charge.get("refunded") or charge.get("disputed"):
-                return jsonify({"success": False, "message": "Payment was refunded."}), 402
-
-        # הכל תקין — צור license
-        used_payment_intents.add(payment_intent_id)
+        # צור license key
         license_key = generate_license_key()
-        activated_licenses[license_key] = {
-            "email": email,
-            "payment_id": payment_intent_id,
-            "active": True
-        }
+
+        if FIREBASE_OK:
+            db.collection("used_payments").document(order_id).set({"used": True})
+            db.collection("licenses").document(license_key).set({
+                "email": email,
+                "order_id": order_id,
+                "active": True
+            })
+            db.collection("users").document(email).set({
+                "pro": True,
+                "license_key": license_key,
+                "order_id": order_id
+            })
+        else:
+            activated_licenses[license_key] = {
+                "email": email,
+                "order_id": order_id,
+                "active": True
+            }
 
         print(f"[+] NEW LICENSE: {license_key} | {email}")
         return jsonify({"success": True, "licenseKey": license_key})
 
-    except stripe.error.StripeError as e:
+    except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+
+@app.route("/check-pro", methods=["POST"])
+def check_pro():
+    try:
+        data = request.json
+        email = data.get("email", "").strip().lower()
+        if not email:
+            return jsonify({"pro": False}), 400
+        if FIREBASE_OK:
+            doc = db.collection("users").document(email).get()
+            if doc.exists and doc.to_dict().get("pro"):
+                return jsonify({"pro": True})
+        return jsonify({"pro": False})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -85,25 +161,18 @@ def verify_license():
     try:
         data = request.json
         key = data.get("key", "").strip()
-
-        if key not in activated_licenses:
-            return jsonify({"success": False, "message": "Invalid license key."}), 404
-
-        lic = activated_licenses[key]
+        if FIREBASE_OK:
+            doc = db.collection("licenses").document(key).get()
+            if not doc.exists:
+                return jsonify({"success": False, "message": "Invalid license key."}), 404
+            lic = doc.to_dict()
+        else:
+            if key not in activated_licenses:
+                return jsonify({"success": False, "message": "Invalid license key."}), 404
+            lic = activated_licenses[key]
         if not lic.get("active"):
             return jsonify({"success": False, "message": "License inactive."}), 403
-
-        # בדוק שהתשלום לא בוטל
-        try:
-            intent = stripe.PaymentIntent.retrieve(lic["payment_id"])
-            if intent.status != "succeeded":
-                activated_licenses[key]["active"] = False
-                return jsonify({"success": False, "message": "Payment reversed."}), 403
-        except Exception:
-            pass
-
         return jsonify({"success": True, "email": lic["email"]})
-
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
