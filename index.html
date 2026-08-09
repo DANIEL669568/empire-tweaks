@@ -1643,53 +1643,10 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
 </script>
 
 <!-- PayPal JS SDK -->
-<script src="https://www.paypal.com/sdk/js?client-id=BAAZi4IqjVn0fgavoJLIKsFpqpiX9hEphBKpQ-6b6QE3TCy_cY7Ts9FCXI52e-KyMca6WN1a-ZtCT7FvSA&currency=USD&components=hosted-fields,buttons&intent=capture"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=BAAZi4IqjVn0fgavoJLIKsFpqpiX9hEphBKpQ-6b6QE3TCy_cY7Ts9FCXI52e-KyMca6WN1a-ZtCT7FvSA&currency=USD&intent=capture"></script>
 <script>
 // ══ PAYPAL PAYMENT ══════════════════════════════════════
-
-const PAYPAL_CLIENT_ID = "BAAZi4IqjVn0fgavoJLIKsFpqpiX9hEphBKpQ-6b6QE3TCy_cY7Ts9FCXI52e-KyMca6WN1a-ZtCT7FvSA";
-let _paypalInitDone = false;
-
-function initPayPalFields() {
-  if (_paypalInitDone || !paypal.HostedFields) return;
-  _paypalInitDone = true;
-
-  paypal.HostedFields.render({
-    createOrder: async () => {
-      const email = document.getElementById("checkoutEmail").value.trim();
-      const res = await fetch("https://empire-tweaks.onrender.com/create-paypal-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, amount: "7.00" })
-      });
-      const data = await res.json();
-      return data.orderID;
-    },
-    styles: {
-      "input": {
-        "color": "#ffffff",
-        "font-family": "Inter, sans-serif",
-        "font-size": "15px"
-      },
-      ":placeholder": { "color": "#2e2e48" },
-      ".valid": { "color": "#ffffff" },
-      ".invalid": { "color": "#ef4444" }
-    },
-    fields: {
-      number: { selector: "#checkoutCardNumber", placeholder: "1234 5678 9012 3456" },
-      expirationDate: { selector: "#checkoutCardExpiry", placeholder: "MM/YY" },
-      cvv: { selector: "#checkoutCardCvc", placeholder: "CVC" }
-    }
-  }).then(hf => {
-    window._paypalHF = hf;
-    // focus effects
-    ["checkoutCardNumber","checkoutCardExpiry","checkoutCardCvc"].forEach(id => {
-      const el = document.getElementById(id);
-      el.addEventListener("focus", () => el.classList.add("focused"), true);
-      el.addEventListener("blur",  () => el.classList.remove("focused"), true);
-    });
-  }).catch(e => console.error("PayPal HostedFields error:", e));
-}
+let _paypalRendered = false;
 
 window.openProModal = () => {
   const user = window._authCurrentUser;
@@ -1698,87 +1655,83 @@ window.openProModal = () => {
   section.classList.add("show");
   setTimeout(() => {
     section.scrollIntoView({ behavior: "smooth", block: "start" });
-    if (paypal.HostedFields && paypal.HostedFields.isEligible()) {
-      initPayPalFields();
+    if (!_paypalRendered) {
+      _paypalRendered = true;
+      renderPayPalButton();
     }
   }, 50);
 };
 
-window.submitCheckout = async () => {
-  const email = document.getElementById("checkoutEmail").value.trim();
-  const errEl = document.getElementById("checkoutErr");
-  const btn   = document.getElementById("checkoutBtn");
-  const spin  = document.getElementById("checkoutSpin");
-  const icon  = document.getElementById("checkoutIcon");
-  const label = document.getElementById("checkoutBtnLabel");
+function renderPayPalButton() {
+  // נקה את שדות הכרטיס הישנים ושים כפתור PayPal
+  const container = document.getElementById("checkoutStep1");
+  const email = document.getElementById("checkoutEmail").value;
+  
+  // הסתר שדות כרטיס ישנים
+  const cardFields = container.querySelectorAll(".checkout-field-group, #checkoutCardNumber, #checkoutCardExpiry, #checkoutCardCvc, .checkout-row, #checkoutBtn, #checkoutErr");
+  cardFields.forEach(el => { if(el) el.style.display = "none"; });
 
-  errEl.className = "pay-err";
-  if (!email || !email.includes("@")) {
-    errEl.textContent = "Please enter a valid email address.";
-    errEl.className = "pay-err show"; return;
+  // הוסף container לכפתור PayPal
+  let ppContainer = document.getElementById("paypal-button-container");
+  if (!ppContainer) {
+    ppContainer = document.createElement("div");
+    ppContainer.id = "paypal-button-container";
+    ppContainer.style.cssText = "margin-top:16px;padding:0 8px;";
+    container.appendChild(ppContainer);
   }
 
-  btn.disabled = true;
-  spin.style.display = "block";
-  icon.style.display = "none";
-  label.textContent = "Processing...";
-
-  try {
-    const { liabilityShifted, orderId } = await window._paypalHF.submit({
-      cardholderName: email,
-      billingAddress: { postalCode: "00000" }
-    });
-
-    // Capture order
-    const res = await fetch("https://empire-tweaks.onrender.com/capture-paypal-order", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orderID: orderId, email })
-    });
-    const result = await res.json();
-
-    if (result.success) {
-      document.getElementById("checkoutStep1").style.display = "none";
-      document.getElementById("checkoutStep2").style.display = "block";
-      document.getElementById("checkoutLicenseDisplay").textContent = result.licenseKey;
-      showToast("Payment successful! Pro is unlocked.", "success");
-    } else {
-      showCheckoutErr(result.message || "Payment failed.");
-      resetCheckoutBtn();
+  paypal.Buttons({
+    style: {
+      layout: "vertical",
+      color: "blue",
+      shape: "rect",
+      label: "pay",
+      height: 50
+    },
+    createOrder: async (data, actions) => {
+      const emailVal = document.getElementById("checkoutEmail").value.trim();
+      const res = await fetch("https://empire-tweaks.onrender.com/create-paypal-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailVal, amount: "7.00" })
+      });
+      const orderData = await res.json();
+      return orderData.orderID;
+    },
+    onApprove: async (data, actions) => {
+      const emailVal = document.getElementById("checkoutEmail").value.trim();
+      const res = await fetch("https://empire-tweaks.onrender.com/capture-paypal-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderID: data.orderID, email: emailVal })
+      });
+      const result = await res.json();
+      if (result.success) {
+        document.getElementById("checkoutStep1").style.display = "none";
+        document.getElementById("checkoutStep2").style.display = "block";
+        document.getElementById("checkoutLicenseDisplay").textContent = result.licenseKey;
+        showToast("Payment successful! Pro is unlocked.", "success");
+      } else {
+        showToast("Payment failed: " + (result.message || "Unknown error"), "error");
+      }
+    },
+    onError: (err) => {
+      showToast("Payment error. Please try again.", "error");
+      console.error("PayPal error:", err);
     }
-  } catch(e) {
-    showCheckoutErr("Cannot connect to server. Make sure server.py is running.");
-    resetCheckoutBtn();
-  }
-};
+  }).render("#paypal-button-container");
+}
 
 function showCheckoutErr(msg) {
   const el = document.getElementById("checkoutErr");
-  el.textContent = msg;
-  el.className = "pay-err show";
+  if (el) { el.textContent = msg; el.className = "pay-err show"; }
 }
 
-function resetCheckoutBtn() {
-  const btn  = document.getElementById("checkoutBtn");
-  const spin = document.getElementById("checkoutSpin");
-  const icon = document.getElementById("checkoutIcon");
-  const label = document.getElementById("checkoutBtnLabel");
-  btn.disabled = false;
-  spin.style.display = "none";
-  icon.style.display = "block";
-  label.textContent = "PAY $7 — UNLOCK PRO";
-}
-
-// Update security text
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".pay-security").forEach(el => {
     el.innerHTML = '🔒 Secured by PayPal &nbsp;&middot;&nbsp; 256-bit SSL encryption';
   });
-  document.querySelectorAll(".auth-security").forEach(el => {
-    el.innerHTML = '🔒 Secured by PayPal &nbsp;&middot;&nbsp; 256-bit SSL encryption';
-  });
 });
-
 </script>
 
 <script>
