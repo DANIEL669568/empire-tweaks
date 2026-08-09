@@ -1655,27 +1655,25 @@ window.openProModal = () => {
   section.classList.add("show");
   setTimeout(() => {
     section.scrollIntoView({ behavior: "smooth", block: "start" });
-    if (!_paypalRendered) {
-      _paypalRendered = true;
-      renderPayPalButton();
-    }
-  }, 50);
+    setTimeout(() => {
+      if (!_paypalRendered) {
+        _paypalRendered = true;
+        renderPayPalButton();
+      }
+    }, 300);
+  }, 100);
 };
 
 function renderPayPalButton() {
+  // נקה את שדות הכרטיס הישנים ושים כפתור PayPal
+  const container = document.getElementById("checkoutStep1");
+  const email = document.getElementById("checkoutEmail").value;
+  
   // הסתר שדות כרטיס ישנים
-  const hideIds = ["checkoutCardNumber","checkoutCardExpiry","checkoutCardCvc","checkoutBtn","checkoutErr"];
-  hideIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.closest(".pay-field, .checkout-row, button") ? el.closest(".pay-field, .checkout-row, button").style.display = "none" : el.style.display = "none";
-  });
-  // הסתר grid של expiry+cvc
-  document.querySelectorAll("#payForm > div[style*='grid']").forEach(el => el.style.display = "none");
-  document.getElementById("checkoutBtn") && (document.getElementById("checkoutBtn").style.display = "none");
-  document.getElementById("checkoutErr") && (document.getElementById("checkoutErr").style.display = "none");
+  const cardFields = container.querySelectorAll(".checkout-field-group, #checkoutCardNumber, #checkoutCardExpiry, #checkoutCardCvc, .checkout-row, #checkoutBtn, #checkoutErr");
+  cardFields.forEach(el => { if(el) el.style.display = "none"; });
 
   // הוסף container לכפתור PayPal
-  const container = document.getElementById("payForm");
   let ppContainer = document.getElementById("paypal-button-container");
   if (!ppContainer) {
     ppContainer = document.createElement("div");
@@ -1711,10 +1709,9 @@ function renderPayPalButton() {
       });
       const result = await res.json();
       if (result.success) {
-        document.getElementById("payForm").style.display = "none";
-        document.getElementById("checkoutSuccess").classList.add("show");
-        document.getElementById("checkoutLicense").textContent = result.licenseKey;
-        localStorage.setItem("et_license", result.licenseKey);
+        document.getElementById("checkoutStep1").style.display = "none";
+        document.getElementById("checkoutStep2").style.display = "block";
+        document.getElementById("checkoutLicenseDisplay").textContent = result.licenseKey;
         showToast("Payment successful! Pro is unlocked.", "success");
       } else {
         showToast("Payment failed: " + (result.message || "Unknown error"), "error");
