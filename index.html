@@ -1643,7 +1643,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
 </script>
 
 <!-- PayPal JS SDK — Subscription -->
-<script src="https://www.paypal.com/sdk/js?client-id=ARIgeL18WDwbG8AG39tSKam6tvfI5cTgdGoRzYCxzG04w8bp79sK7cHy09OmO_MvdN9zKsKD6DnHPRVG&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=BAAZi4lqjVn0fgavoJLIKsFpqpiX9hEphBKpQ-6b6QE3TCy_cY7Ts9FCXl52e-KyMca6WN1a-ZtCT7FvSA&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
 <script>
 // ══ PAYPAL SUBSCRIPTION ══════════════════════════════════════
 let _paypalRendered = false;
@@ -1699,7 +1699,7 @@ function renderPayPalButton() {
       label: "subscribe"
     },
     createSubscription: function(data, actions) {
-      return actions.subscription.create({ plan_id: "P-6U844172CS087871CNJ4G6NI" });
+      return actions.subscription.create({ plan_id: "P-37F11585C4970333YNKJNTIQ" });
     },
     onApprove: function(data, actions) {
       localStorage.setItem("et_subscription", data.subscriptionID);
