@@ -811,8 +811,8 @@ footer{background:transparent;border-top:1px solid var(--border);padding:70px 56
       <img src="logo.png" alt="Empire Tweaks">
       <span class="modal-brand">EMPIRE TWEAKS</span>
     </div>
-    <h2>ניהול המנוי</h2>
-    <p class="modal-sub">צפה בסטטוס המנוי שלך ובטל בכל עת</p>
+    <h2 data-i18n="subTitle">ניהול המנוי</h2>
+    <p class="modal-sub" data-i18n="subSubtitle">צפה בסטטוס המנוי שלך ובטל בכל עת</p>
     <div id="subStatusBox"></div>
   </div>
 </div>
@@ -1661,7 +1661,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
 </script>
 
 <!-- PayPal JS SDK — Subscription -->
-<script src="https://www.paypal.com/sdk/js?client-id=BAAZi4lqjVn0fgavoJLIKsFpqpiX9hEphBKpQ-6b6QE3TCy_cY7Ts9FCXl52e-KyMca6WN1a-ZtCT7FvSA&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=BAAZi4lqjVn0fgavoJLIKsFpqpiX9hEphBKpQ-6b6QE3TCy_cY7Ts9FCXl52e-KyMca6WN1a-ZtCT7FvSA&vault=true&intent=subscription&locale=en_US" data-sdk-integration-source="button-factory"></script>
 <script>
 // ══ PAYPAL SUBSCRIPTION ══════════════════════════════════════
 let _paypalRendered = false;
@@ -1714,7 +1714,7 @@ function renderPayPalButton() {
       shape: "pill",
       color: "blue",
       layout: "vertical",
-      label: "subscribe"
+      label: "paypal"
     },
     createSubscription: function(data, actions) {
       return actions.subscription.create({ plan_id: "P-37F11585C4970333YNKJNTIQ" });
@@ -1760,10 +1760,16 @@ function daysLeftUntil(dateStr) {
 
 function renderSubStatus() {
   const box = document.getElementById("subStatusBox");
+  const t = (typeof i18n !== "undefined" && i18n[currentLang]) ? i18n[currentLang] : { };
   const subId = localStorage.getItem("et_subscription");
 
   if (!subId) {
-    box.innerHTML = `<div class="tip">אין לך מנוי פעיל כרגע. תוכל לרכוש Pro דרך עמוד המחירים.</div>`;
+    box.innerHTML = `
+      <div class="tip">${t.subNoActive || "You don't have an active subscription right now."}</div>
+      <button class="btn-auth" style="margin-top:18px" onclick="closeSubModal();document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">
+        ${t.subGoPayment || "Go to Payment Page"}
+      </button>
+    `;
     return;
   }
 
@@ -1772,31 +1778,33 @@ function renderSubStatus() {
   if (status === "cancelled") {
     const end = localStorage.getItem("et_sub_end");
     const left = end ? daysLeftUntil(end) : 0;
+    const dayWord = left === 1 ? (t.subDaySingular || "day") : (t.subDayPlural || "days");
     box.innerHTML = `
       <div class="tip">
-        המנוי בוטל. הגישה שלך ל-Pro תישאר פעילה עוד
-        <strong style="color:var(--white)">${left} ${left === 1 ? "יום" : "ימים"}</strong>
-        ${end ? `(עד ${new Date(end).toLocaleDateString("he-IL")})` : ""}.
+        ${t.subCancelledPrefix || "Subscription cancelled. Access stays active for"}
+        <strong style="color:var(--white)">${left} ${dayWord}</strong>
+        ${end ? `(${t.subUntil || "until"} ${new Date(end).toLocaleDateString(currentLang === "he" ? "he-IL" : currentLang === "ar" ? "ar" : currentLang === "ru" ? "ru-RU" : "en-US")})` : ""}.
       </div>
       <p style="font-size:.78rem;color:var(--grey);margin-top:14px;line-height:1.6">
-        לא תחויב שוב. לאחר תום התקופה הגישה תיסגר אוטומטית.
+        ${t.subCancelledNote || "You won't be charged again."}
       </p>
     `;
   } else {
     box.innerHTML = `
-      <div class="tip">המנוי שלך פעיל וכל 50+ הטוויקים פתוחים.</div>
+      <div class="tip">${t.subActiveMsg || "Your subscription is active."}</div>
       <button class="btn-auth" id="cancelSubBtn" style="margin-top:18px;background:linear-gradient(135deg,#dc2626,#f87171)" onclick="cancelSubscription()">
         <div class="spin" id="cancelSubSpin"></div>
-        <span id="cancelSubLabel">בטל מנוי</span>
+        <span id="cancelSubLabel">${t.subCancelBtn || "Cancel Subscription"}</span>
       </button>
       <p style="font-size:.78rem;color:var(--grey);margin-top:14px;line-height:1.6">
-        הביטול לא מזכה בכסף על התקופה הנוכחית, אבל לא תחויב בחודש הבא. הגישה נשארת פתוחה עד תום התקופה ששולמה.
+        ${t.subCancelNote || ""}
       </p>
     `;
   }
 }
 
 window.cancelSubscription = async () => {
+  const t = (typeof i18n !== "undefined" && i18n[currentLang]) ? i18n[currentLang] : { };
   const subId = localStorage.getItem("et_subscription");
   if (!subId) return;
 
@@ -1805,7 +1813,7 @@ window.cancelSubscription = async () => {
   const label = document.getElementById("cancelSubLabel");
   btn.disabled = true;
   spin.style.display = "block";
-  label.textContent = "מבטל...";
+  label.textContent = t.subCancelling || "Cancelling...";
 
   try {
     const res = await fetch("https://empire-tweaks.onrender.com/cancel-subscription", {
@@ -1825,13 +1833,13 @@ window.cancelSubscription = async () => {
         localStorage.setItem("et_sub_end", end);
       }
       localStorage.setItem("et_sub_status", "cancelled");
-      showToast("המנוי בוטל. הגישה תישאר פתוחה עד תום התקופה ששולמה.", "success");
+      showToast(t.subCancelSuccess || "Subscription cancelled.", "success");
       renderSubStatus();
     } else {
-      showToast("שגיאה בביטול המנוי. נסה שוב.", "error");
+      showToast(t.subCancelError || "Error cancelling subscription.", "error");
     }
   } catch (e) {
-    showToast("לא ניתן להתחבר לשרת. ודא ש-server.py פעיל.", "error");
+    showToast(t.subServerError || "Could not connect to the server.", "error");
   } finally {
     btn.disabled = false;
     spin.style.display = "none";
@@ -1851,6 +1859,19 @@ const i18n = {
     tweaks: "Tweaks", users: "K+ Users", rating: "Star Rating", fps: "Avg FPS Gain",
     freePlan: "🆓 Free", proPlan: "👑 Pro", buyPro: "Buy Pro — $7",
     payBtn: "PAY $7 — UNLOCK PRO",
+    subTitle: "Manage Subscription", subSubtitle: "View your subscription status and cancel anytime",
+    subNoActive: "You don't have an active subscription right now. You can get Pro from the pricing section.",
+    subGoPayment: "Go to Payment Page",
+    subActiveMsg: "Your subscription is active — all 50+ tweaks are unlocked.",
+    subCancelBtn: "Cancel Subscription",
+    subCancelNote: "Cancelling won't refund the current period, but you won't be charged next month. Access stays open until the paid period ends.",
+    subCancelledPrefix: "Subscription cancelled. Your Pro access stays active for",
+    subDaySingular: "day", subDayPlural: "days", subUntil: "until",
+    subCancelledNote: "You won't be charged again. Access closes automatically after this period.",
+    subCancelling: "Cancelling...",
+    subCancelSuccess: "Subscription cancelled. Access stays open until the paid period ends.",
+    subCancelError: "Error cancelling subscription. Please try again.",
+    subServerError: "Could not connect to the server. Make sure server.py is running.",
     dir: "ltr"
   },
   he: {
@@ -1863,6 +1884,19 @@ const i18n = {
     tweaks: "טוויקים", users: "K+ משתמשים", rating: "דירוג כוכבים", fps: "FPS ממוצע",
     freePlan: "🆓 חינם", proPlan: "👑 פרו", buyPro: "קנה Pro — $7",
     payBtn: "שלם $7 — פתח Pro",
+    subTitle: "ניהול מנוי", subSubtitle: "צפה בסטטוס המנוי שלך ובטל בכל עת",
+    subNoActive: "אין לך מנוי פעיל כרגע. תוכל לרכוש Pro דרך עמוד המחירים.",
+    subGoPayment: "עבור לעמוד התשלום",
+    subActiveMsg: "המנוי שלך פעיל וכל 50+ הטוויקים פתוחים.",
+    subCancelBtn: "בטל מנוי",
+    subCancelNote: "הביטול לא מזכה בכסף על התקופה הנוכחית, אבל לא תחויב בחודש הבא. הגישה נשארת פתוחה עד תום התקופה ששולמה.",
+    subCancelledPrefix: "המנוי בוטל. הגישה שלך ל-Pro תישאר פעילה עוד",
+    subDaySingular: "יום", subDayPlural: "ימים", subUntil: "עד",
+    subCancelledNote: "לא תחויב שוב. לאחר תום התקופה הגישה תיסגר אוטומטית.",
+    subCancelling: "מבטל...",
+    subCancelSuccess: "המנוי בוטל. הגישה תישאר פתוחה עד תום התקופה ששולמה.",
+    subCancelError: "שגיאה בביטול המנוי. נסה שוב.",
+    subServerError: "לא ניתן להתחבר לשרת. ודא ש-server.py פעיל.",
     dir: "rtl"
   },
   ar: {
@@ -1875,6 +1909,19 @@ const i18n = {
     tweaks: "تعديلات", users: "K+ مستخدم", rating: "تقييم النجوم", fps: "متوسط FPS",
     freePlan: "🆓 مجاني", proPlan: "👑 برو", buyPro: "اشترِ Pro — $7",
     payBtn: "ادفع $7 — افتح Pro",
+    subTitle: "إدارة الاشتراك", subSubtitle: "اطّلع على حالة اشتراكك وألغِه في أي وقت",
+    subNoActive: "ليس لديك اشتراك نشط حاليًا. يمكنك الحصول على Pro من قسم الأسعار.",
+    subGoPayment: "الانتقال إلى صفحة الدفع",
+    subActiveMsg: "اشتراكك نشط وجميع التعديلات الـ50+ مفتوحة.",
+    subCancelBtn: "إلغاء الاشتراك",
+    subCancelNote: "الإلغاء لا يعيد المبلغ عن الفترة الحالية، لكنك لن تُحاسَب الشهر القادم. يبقى الوصول مفتوحًا حتى نهاية الفترة المدفوعة.",
+    subCancelledPrefix: "تم إلغاء الاشتراك. سيبقى وصولك إلى Pro نشطًا لمدة",
+    subDaySingular: "يوم", subDayPlural: "أيام", subUntil: "حتى",
+    subCancelledNote: "لن تُحاسَب مرة أخرى. سيُغلق الوصول تلقائيًا بعد هذه الفترة.",
+    subCancelling: "جارٍ الإلغاء...",
+    subCancelSuccess: "تم إلغاء الاشتراك. سيبقى الوصول مفتوحًا حتى نهاية الفترة المدفوعة.",
+    subCancelError: "خطأ في إلغاء الاشتراك. حاول مرة أخرى.",
+    subServerError: "تعذّر الاتصال بالخادم. تأكد من تشغيل server.py.",
     dir: "rtl"
   },
   ru: {
@@ -1887,6 +1934,19 @@ const i18n = {
     tweaks: "Твиков", users: "K+ Пользователей", rating: "Рейтинг звёзд", fps: "Средний FPS",
     freePlan: "🆓 Бесплатно", proPlan: "👑 Про", buyPro: "Купить Pro — $7",
     payBtn: "ПЛАТИТЬ $7 — ОТКРЫТЬ PRO",
+    subTitle: "Управление подпиской", subSubtitle: "Проверьте статус подписки и отмените в любое время",
+    subNoActive: "У вас сейчас нет активной подписки. Вы можете оформить Pro в разделе цен.",
+    subGoPayment: "Перейти к оплате",
+    subActiveMsg: "Ваша подписка активна — все 50+ твиков разблокированы.",
+    subCancelBtn: "Отменить подписку",
+    subCancelNote: "Отмена не возвращает средства за текущий период, но списание в следующем месяце не произойдёт. Доступ сохранится до конца оплаченного периода.",
+    subCancelledPrefix: "Подписка отменена. Доступ к Pro останется активным ещё",
+    subDaySingular: "день", subDayPlural: "дней", subUntil: "до",
+    subCancelledNote: "Повторного списания не будет. Доступ автоматически закроется после этого периода.",
+    subCancelling: "Отмена...",
+    subCancelSuccess: "Подписка отменена. Доступ сохранится до конца оплаченного периода.",
+    subCancelError: "Ошибка при отмене подписки. Попробуйте снова.",
+    subServerError: "Не удалось подключиться к серверу. Убедитесь, что server.py запущен.",
     dir: "ltr"
   }
 };
@@ -1951,6 +2011,11 @@ function applyLang() {
   document.querySelectorAll("#payBtnLabel, #checkoutBtnLabel").forEach(el => {
     el.textContent = t.payBtn;
   });
+  // עדכן את מודל ניהול המנוי אם הוא פתוח כרגע
+  const subModal = document.getElementById("subModal");
+  if (subModal && subModal.classList.contains("show") && typeof renderSubStatus === "function") {
+    renderSubStatus();
+  }
 }
 
 // הפעל בטעינה
