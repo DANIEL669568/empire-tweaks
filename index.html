@@ -54,6 +54,12 @@ a{text-decoration:none;color:inherit}
 .lang-menu div:hover{background:rgba(255,255,255,.08)}
 [dir="rtl"] body{font-family:"Inter",sans-serif}
 
+.sub-lang-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  color:var(--grey);padding:6px 14px;border-radius:20px;cursor:pointer;
+  font-size:12px;font-weight:600;font-family:"Inter",sans-serif;transition:all .2s}
+.sub-lang-btn:hover{background:rgba(255,255,255,.12);color:var(--white)}
+.sub-lang-btn.on{background:linear-gradient(135deg,var(--b2),var(--b3));color:#fff;border-color:transparent}
+
 /* ── AUTH MODAL ── */
 .modal-overlay{
   position:fixed;inset:0;z-index:900;
@@ -811,6 +817,12 @@ footer{background:transparent;border-top:1px solid var(--border);padding:70px 56
       <img src="logo.png" alt="Empire Tweaks">
       <span class="modal-brand">EMPIRE TWEAKS</span>
     </div>
+    <div id="subLangSwitcher" style="display:flex;gap:6px;justify-content:center;margin-bottom:18px">
+      <button type="button" class="sub-lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+      <button type="button" class="sub-lang-btn" data-lang="he" onclick="setLang('he')">עב</button>
+      <button type="button" class="sub-lang-btn" data-lang="ar" onclick="setLang('ar')">عر</button>
+      <button type="button" class="sub-lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
+    </div>
     <h2 data-i18n="subTitle">ניהול המנוי</h2>
     <p class="modal-sub" data-i18n="subSubtitle">צפה בסטטוס המנוי שלך ובטל בכל עת</p>
     <div id="subStatusBox"></div>
@@ -1293,15 +1305,15 @@ function showUserUI(user) {
         </div>
         <div class="dd-item" onclick="document.getElementById('download').scrollIntoView({behavior:'smooth'});toggleUserMenu()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          My Downloads
+          <span data-i18n="myDownloads">My Downloads</span>
         </div>
         <div class="dd-item" onclick="openSubModal();toggleUserMenu()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-          ניהול מנוי
+          <span data-i18n="manageSub">ניהול מנוי</span>
         </div>
         <div class="dd-item danger" onclick="doSignOut()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          Sign Out
+          <span data-i18n="signOut">Sign Out</span>
         </div>
       </div>
     </div>`;
@@ -1872,6 +1884,7 @@ const i18n = {
     subCancelSuccess: "Subscription cancelled. Access stays open until the paid period ends.",
     subCancelError: "Error cancelling subscription. Please try again.",
     subServerError: "Could not connect to the server. Make sure server.py is running.",
+    myDownloads: "My Downloads", manageSub: "Manage Subscription", signOut: "Sign Out",
     dir: "ltr"
   },
   he: {
@@ -1897,6 +1910,7 @@ const i18n = {
     subCancelSuccess: "המנוי בוטל. הגישה תישאר פתוחה עד תום התקופה ששולמה.",
     subCancelError: "שגיאה בביטול המנוי. נסה שוב.",
     subServerError: "לא ניתן להתחבר לשרת. ודא ש-server.py פעיל.",
+    myDownloads: "ההורדות שלי", manageSub: "ניהול מנוי", signOut: "התנתק",
     dir: "rtl"
   },
   ar: {
@@ -1922,6 +1936,7 @@ const i18n = {
     subCancelSuccess: "تم إلغاء الاشتراك. سيبقى الوصول مفتوحًا حتى نهاية الفترة المدفوعة.",
     subCancelError: "خطأ في إلغاء الاشتراك. حاول مرة أخرى.",
     subServerError: "تعذّر الاتصال بالخادم. تأكد من تشغيل server.py.",
+    myDownloads: "تنزيلاتي", manageSub: "إدارة الاشتراك", signOut: "تسجيل الخروج",
     dir: "rtl"
   },
   ru: {
@@ -1947,6 +1962,7 @@ const i18n = {
     subCancelSuccess: "Подписка отменена. Доступ сохранится до конца оплаченного периода.",
     subCancelError: "Ошибка при отмене подписки. Попробуйте снова.",
     subServerError: "Не удалось подключиться к серверу. Убедитесь, что server.py запущен.",
+    myDownloads: "Мои загрузки", manageSub: "Управление подпиской", signOut: "Выйти",
     dir: "ltr"
   }
 };
@@ -2016,6 +2032,11 @@ function applyLang() {
   if (subModal && subModal.classList.contains("show") && typeof renderSubStatus === "function") {
     renderSubStatus();
   }
+
+  // סמן את השפה הפעילה בבורר השפה שבתוך מודל ניהול המנוי
+  document.querySelectorAll(".sub-lang-btn").forEach(btn => {
+    btn.classList.toggle("on", btn.getAttribute("data-lang") === currentLang);
+  });
 }
 
 // הפעל בטעינה
