@@ -67,7 +67,8 @@ img{max-width:100%;height:auto;display:block}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 
 /* ═══════════════════════ ATMOSPHERE ═══════════════════════ */
-#gl{position:fixed;inset:0;width:100%;height:100%;z-index:-3;display:block}
+#bg3d{position:fixed;inset:0;width:100%;height:100%;z-index:-2;display:block;pointer-events:none;opacity:0;transition:opacity 1.8s}
+#bg3d.on{opacity:1}
 .atmo{position:fixed;inset:0;z-index:-3;background:
   radial-gradient(1200px 700px at 78% -10%,rgba(43,140,255,.22),transparent 60%),
   radial-gradient(900px 600px at -10% 30%,rgba(122,92,255,.14),transparent 60%),
@@ -338,14 +339,13 @@ html[dir=rtl] .mf{letter-spacing:-.01em}
 .big-sw span{font-weight:700}
 
 /* ═══════════════════════ HOW (pinned horizontal) ═══════════════════════ */
-.how{padding:0}
-.how-pin{height:240vh;position:relative}
-.how-sticky{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
-.how-top{margin-bottom:40px}
-.how-track{display:flex;gap:24px;padding-inline:max(24px,calc((100vw - 1240px)/2));will-change:transform}
-.step{flex:none;width:min(560px,78vw);min-height:420px;border-radius:var(--r-xl);padding:40px;position:relative;overflow:hidden;
+.how{padding:120px 0}
+.how-pin,.how-sticky{position:relative}
+.how-top{margin-bottom:50px}
+.how-track{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;width:min(1240px,100% - 48px);margin:0 auto;perspective:1400px}
+.step{min-height:400px;transform-style:preserve-3d;border-radius:var(--r-xl);padding:40px;position:relative;overflow:hidden;
   background:linear-gradient(165deg,rgba(24,36,66,.85),rgba(8,13,25,.92));border:1px solid var(--edge2);box-shadow:0 50px 100px -50px rgba(0,0,0,.9)}
-.step .num{font-family:var(--display);font-weight:800;font-size:180px;line-height:.8;position:absolute;inset-inline-end:24px;bottom:-14px;
+.step .num{font-family:var(--display);font-weight:800;font-size:150px;line-height:.8;position:absolute;inset-inline-end:24px;bottom:-14px;
   color:transparent;-webkit-text-stroke:1.5px rgba(120,170,255,.18)}
 .step h3{font-family:var(--display);font-weight:800;font-size:clamp(26px,2.6vw,38px);letter-spacing:-.025em;line-height:1.05;margin:20px 0 14px;max-width:420px}
 .step p{color:#a2afca;max-width:400px}
@@ -492,31 +492,13 @@ details.acc-card[open] summary::after{transform:rotate(45deg)}
 @keyframes rot{to{transform:rotate(360deg)}}
 
 
-/* ═══════════════════════ CORE (3D particles) ═══════════════════════ */
-.core{padding:0}
-.core-pin{height:260vh;position:relative}
-.core-sticky{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}
-#coreCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.core-fallback{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
-.core-fallback img{width:min(420px,60vw);filter:drop-shadow(0 0 80px rgba(43,140,255,.7));opacity:.9}
-.core.ready .core-fallback{display:none}
-.core-lines{position:absolute;left:0;right:0;bottom:12vh;text-align:center;pointer-events:none;padding:0 24px}
-.cl{position:absolute;left:0;right:0;bottom:0;font-family:var(--display);font-weight:800;font-size:clamp(28px,4.4vw,64px);letter-spacing:-.035em;line-height:1.05;
-  opacity:0;transform:translateY(30px);filter:blur(12px);transition:none;will-change:opacity,transform,filter}
-html[dir=rtl] .cl{letter-spacing:-.01em}
-.cl em{font-style:normal;background:linear-gradient(100deg,var(--cyan),var(--blue) 50%,var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
-.hud{position:absolute;font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:rgba(160,190,240,.55);text-transform:uppercase;pointer-events:none;line-height:1.9;direction:ltr}
-.hud b{color:#dfe9ff;font-weight:500}
-.hud.tl{top:110px;left:max(24px,calc((100vw - 1240px)/2))}
-.hud.tr{top:110px;right:max(24px,calc((100vw - 1240px)/2));text-align:right}
-.hud.bl{bottom:40px;left:max(24px,calc((100vw - 1240px)/2))}
-.hud .bar{width:160px;height:2px;background:rgba(255,255,255,.1);margin-top:8px;position:relative;overflow:hidden}
-.hud .bar i{position:absolute;inset:0;transform-origin:0 50%;transform:scaleX(0);background:linear-gradient(90deg,var(--violet),var(--cyan),var(--lime))}
-.corner{position:absolute;width:22px;height:22px;border-color:rgba(120,170,255,.35);border-style:solid;pointer-events:none}
-.corner.a{top:96px;left:max(12px,calc((100vw - 1264px)/2));border-width:1px 0 0 1px}
-.corner.b{top:96px;right:max(12px,calc((100vw - 1264px)/2));border-width:1px 1px 0 0}
-.corner.c{bottom:26px;left:max(12px,calc((100vw - 1264px)/2));border-width:0 0 1px 1px}
-.corner.d{bottom:26px;right:max(12px,calc((100vw - 1264px)/2));border-width:0 1px 1px 0}
+/* ═══════════════════════ STATEMENT ═══════════════════════ */
+.core{padding:22vh 0 18vh}
+.core-in{display:flex;flex-direction:column;gap:30vh;text-align:center}
+.cl{font-size:clamp(34px,5.6vw,86px)!important;margin:0!important;text-shadow:0 10px 60px rgba(3,5,10,.9)}
+.cl:nth-child(2){align-self:flex-end;text-align:end}
+.cl:nth-child(1){align-self:flex-start;text-align:start}
+@media (max-width:820px){.core-in{gap:18vh}.cl:nth-child(n){align-self:center;text-align:center}}
 
 /* 3D logo in final CTA */
 .logo3d{position:relative;width:min(380px,80vw);height:270px;margin:-40px auto 0}
@@ -532,8 +514,8 @@ html[dir=rtl] .h2 .wd>span{transform-origin:100% 100%}
 .h2 em:has(.wd){background:none;color:inherit}
 .h2 em .wd>span{background:linear-gradient(100deg,var(--cyan),var(--blue) 60%,var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
 [data-r].h2{opacity:1;transform:none}
-@media (max-width:820px){.hud.tr,.corner{display:none}.hud.tl{top:90px}.core-lines{bottom:10vh}.logo3d{width:240px;height:180px}}
-@media (prefers-reduced-motion:reduce){.h2 .wd>span{transform:none!important}.cl{filter:none}}
+@media (max-width:820px){.logo3d{width:240px;height:180px}}
+@media (prefers-reduced-motion:reduce){.h2 .wd>span{transform:none!important}}
 
 #features .bento,#safety,#faq,footer{content-visibility:auto;contain-intrinsic-size:auto 900px}
 
@@ -578,6 +560,7 @@ html[dir=rtl] .cmp-handle{left:auto;right:var(--split,50%)}
 
 /* ═══════════════════════ RESPONSIVE ═══════════════════════ */
 @media (max-width:1100px){
+  .how-track{grid-template-columns:repeat(2,minmax(0,1fr))}
   .links{display:none}
   .burger{display:grid}
   .hero-grid,.safe,.board{grid-template-columns:1fr}
@@ -589,10 +572,8 @@ html[dir=rtl] .cmp-handle{left:auto;right:var(--split,50%)}
   section{padding:110px 0}
   .bento{grid-template-columns:1fr}.s4,.s5,.s6,.s7,.s8,.s12{grid-column:auto}
   .plans{grid-template-columns:1fr}
-  .how-pin{height:auto}
-  .how-sticky{position:relative;height:auto;padding:110px 0}
-  .how-track{flex-direction:column;transform:none!important;padding-inline:24px}
-  .step{width:100%;min-height:0}
+  .how-track{grid-template-columns:1fr}
+  .step{min-height:0}
   .fc3{display:none}
   .nav-r .hide-m{display:none}
 }
@@ -664,7 +645,7 @@ html[dir=rtl] .cmp-handle{left:auto;right:var(--split,50%)}
 
 <!-- ATMOSPHERE -->
 <div class="atmo"></div>
-<canvas id="gl" aria-hidden="true"></canvas>
+<canvas id="bg3d" aria-hidden="true"></canvas>
 <div class="vignette"></div>
 <div class="grain"></div>
 <div class="cur-light" id="curLight"></div>
@@ -755,22 +736,12 @@ html[dir=rtl] .cmp-handle{left:auto;right:var(--split,50%)}
 </div>
 
 
-<!-- ═════════ CORE: 3D particles ═════════ -->
+<!-- ═════════ STATEMENT (the background particles assemble into the logo here) ═════════ -->
 <section class="core" id="core" aria-label="Empire Tweaks">
-  <div class="core-pin" id="corePin">
-    <div class="core-sticky">
-      <canvas id="coreCanvas" aria-hidden="true"></canvas>
-      <div class="core-fallback"><img src="/img/logo.svg" alt=""></div>
-      <span class="corner a"></span><span class="corner b"></span><span class="corner c"></span><span class="corner d"></span>
-      <div class="hud tl">SYS/ <b id="hudState">NOISE</b><br>PARTICLES <b id="hudN">24,000</b></div>
-      <div class="hud tr">SIGNAL <b id="hudPct">0%</b><br>LATENCY <b id="hudLat">HIGH</b></div>
-      <div class="hud bl">EMPIRE · CORE<div class="bar"><i id="hudBar"></i></div></div>
-      <div class="core-lines" aria-live="off">
-        <div class="cl" id="cl1" data-t-html="c1">Out of the box, Windows is <em>noise.</em></div>
-        <div class="cl" id="cl2" data-t-html="c2">Empire Tweaks turns it into <em>signal.</em></div>
-        <div class="cl" id="cl3" data-t-html="c3">22 switches. One click. <em>Zero guesswork.</em></div>
-      </div>
-    </div>
+  <div class="wrap core-in">
+    <p class="cl h2" data-r data-t-html="c1">Out of the box, Windows is <em>noise.</em></p>
+    <p class="cl h2" data-r data-t-html="c2">Empire Tweaks turns it into <em>signal.</em></p>
+    <p class="cl h2" data-r data-t-html="c3">22 switches. One click. <em>Zero guesswork.</em></p>
   </div>
 </section>
 
@@ -925,32 +896,32 @@ html[dir=rtl] .cmp-handle{left:auto;right:var(--split,50%)}
   <div class="how-pin" id="howPin">
     <div class="how-sticky">
       <div class="wrap how-top">
-        <div class="kick"><i></i><span data-t="stepsKick">How it works</span></div>
-        <h2 class="h2" data-t-html="stepsH2">Faster in <em>under two minutes.</em></h2>
+        <div class="kick" data-r><i></i><span data-t="stepsKick">How it works</span></div>
+        <h2 class="h2" data-r data-t-html="stepsH2">Faster in <em>under two minutes.</em></h2>
       </div>
       <div class="how-track" id="howTrack">
-        <article class="step">
+        <article class="step tilt" data-r>
           <div class="kick"><i></i>01</div>
           <h3 data-t="s1h">Download &amp; open</h3>
           <p data-t="s1p">One small app. It asks for Administrator so it can change system settings – nothing installs in the background.</p>
           <div class="art mini-term"><span class="d">$</span> EmpireTweaks.exe<br><span class="g">✓</span> running as Administrator</div>
           <div class="num">01</div>
         </article>
-        <article class="step">
+        <article class="step tilt" data-r>
           <div class="kick"><i></i>02</div>
           <h3 data-t="s2h">Hit One-Click Optimize</h3>
           <p data-t="s2p">It saves a backup of every value it touches, then applies the safe, proven tweaks.</p>
           <div class="art mini-term"><span class="y">backup</span> 18 values → state.json<br><span class="g">✓</span> 18 tweaks applied</div>
           <div class="num">02</div>
         </article>
-        <article class="step">
+        <article class="step tilt" data-r>
           <div class="kick"><i></i>03</div>
           <h3 data-t="s3h">Restart &amp; play</h3>
           <p data-t="s3p">Don't like a change? Flip its switch back – or undo everything at once.</p>
           <div class="art mini-term"><span class="d">$</span> revert --all<br><span class="g">✓</span> Windows restored to original values</div>
           <div class="num">03</div>
         </article>
-        <article class="step last">
+        <article class="step last tilt" data-r>
           <div class="kick" style="color:#fff"><i style="background:#fff;box-shadow:0 0 12px #fff"></i>GO</div>
           <h3 data-t="s4h">Your PC, tuned for your games.</h3>
           <p data-t="s4p">Free to try. PRO unlocks every tweak and the AI Assistant.</p>
@@ -1463,14 +1434,6 @@ function updateManifesto(){
   const ws = el.querySelectorAll(".w"), lit = Math.round(p * ws.length);
   ws.forEach((w, i) => w.classList.toggle("lit", RM || i < lit));
 }
-function updateHow(){
-  if (innerWidth <= 820) { howTrack.style.transform = ""; return; }
-  const r = howPin.getBoundingClientRect(), total = howPin.offsetHeight - innerHeight;
-  const p = Math.min(1, Math.max(0, -r.top / total));
-  const max = howTrack.scrollWidth - innerWidth;
-  const dir = document.documentElement.dir === "rtl" ? 1 : -1;
-  howTrack.style.transform = `translate3d(${dir * p * Math.max(0, max)}px,0,0)`;
-}
 let scrollQueued = false, docH = 1;
 function onScroll(){
   if (scrollQueued) return;
@@ -1485,7 +1448,7 @@ function scrollWork(){
   nav.classList.toggle("compact", y > 60);
   velocity = y - lastY; lastY = y;
   heroScroll(y);
-  updateManifesto(); updateHow(); updateCore();
+  updateManifesto();
   activeSection();
 }
 function measure(){ docH = document.documentElement.scrollHeight - innerHeight; }
@@ -1613,54 +1576,9 @@ function typeTerm(){
 }
 new IntersectionObserver((es, o) => es.forEach(e => { if (e.isIntersecting) { typeTerm(); o.disconnect(); } }), {threshold: .35}).observe($("#term"));
 
-/* ═══════════════════════════════════ WEBGL BACKGROUND (no library) ═══════════════════════════════════ */
-function initGL(){
-  const c = $("#gl"); const gl = c.getContext("webgl", {antialias: false, alpha: true, premultipliedAlpha: false});
-  if (!gl) { c.remove(); return; }
-  const vs = "attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}";
-  const fs = `precision mediump float;uniform vec2 r;uniform float t;uniform vec2 m;uniform float s;
-  float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
-  float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
-  float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*n(p);p*=2.02;a*=.5;}return v;}
-  void main(){vec2 uv=gl_FragCoord.xy/r;vec2 q=uv;q.x*=r.x/r.y;q.y+=s*.35;
-    float tt=t*.045;vec2 w=vec2(fbm(q*1.6+tt),fbm(q*1.6-tt+3.1));float f=fbm(q*1.4+w*1.8+vec2(tt*.6,-tt));
-    vec3 deep=vec3(.008,.016,.04);vec3 blue=vec3(.09,.33,.95);vec3 cyan=vec3(.15,.78,1.);vec3 vio=vec3(.42,.28,.98);
-    vec3 col=mix(deep,blue,smoothstep(.45,.95,f)*.55);col=mix(col,vio,smoothstep(.55,1.,w.x)*.28);col+=cyan*pow(smoothstep(.62,1.,f),3.)*.35;
-    vec2 mm=m;mm.x*=r.x/r.y;float d=length(q-vec2(mm.x,mm.y+s*.35));col+=blue*.22*exp(-d*d*6.);
-    col*=.55+.45*smoothstep(1.2,.1,length(uv-vec2(.6,.75)));
-    gl_FragColor=vec4(col,1.);}`;
-  const sh = (type, src) => { const x = gl.createShader(type); gl.shaderSource(x, src); gl.compileShader(x); return x; };
-  const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(pr);
-  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) { c.remove(); return; }
-  gl.useProgram(pr);
-  const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
-  const loc = gl.getAttribLocation(pr, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-  const uR = gl.getUniformLocation(pr, "r"), uT = gl.getUniformLocation(pr, "t"), uM = gl.getUniformLocation(pr, "m"), uS = gl.getUniformLocation(pr, "s");
-  const Q = innerWidth < 800 ? .3 : .4;  // render at reduced resolution – it's a soft background
-  function size(){ c.width = Math.round(innerWidth * Q); c.height = Math.round(innerHeight * Q); gl.viewport(0, 0, c.width, c.height); }
-  size(); addEventListener("resize", size);
-  let tm = [.7, .7], cm = [.7, .7];
-  addEventListener("pointermove", e => { tm = [e.clientX / innerWidth, 1 - e.clientY / innerHeight]; }, {passive: true});
-  let visible = true; document.addEventListener("visibilitychange", () => visible = !document.hidden);
-  const t0 = performance.now();
-  let lastDraw = 0;
-  function frame(now){
-    const busy = window.__coreOnScreen;           // the 3D section draws its own scene – don't pay twice
-    if (visible && !busy && now - lastDraw > 32) {  // ~30 fps is plenty for a slow background
-      lastDraw = now;
-      cm[0] += (tm[0] - cm[0]) * .08; cm[1] += (tm[1] - cm[1]) * .04;
-      gl.uniform2f(uR, c.width, c.height); gl.uniform1f(uT, RM ? 10 : (now - t0) / 1000);
-      gl.uniform2f(uM, cm[0], cm[1]); gl.uniform1f(uS, scrollY / Math.max(1, document.documentElement.scrollHeight) * 2);
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    }
-    if (!RM) requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
-  c.style.opacity = 0; c.style.transition = "opacity 1.6s"; requestAnimationFrame(() => c.style.opacity = .95);
-}
-
 /* ═══════════════════════════════════ INTRO ═══════════════════════════════════ */
 function heroIntro(){
+  (window.requestIdleCallback || setTimeout)(startBackground3D, {timeout: 600});
   $("#h1").classList.add("in");
   setTimeout(() => { heroStage.style.transition = "none"; }, 1400);   // after the entrance, follow scroll 1:1
   $$(".hero [data-r]").forEach((el, i) => setTimeout(() => el.classList.add("in"), 250 + i * 120));
@@ -1706,41 +1624,31 @@ function splitWords(el){
 }
 function splitAllHeadings(){ $$(".h2").forEach(splitWords); }
 
-/* ═══════════════════════════════════ CORE OVERLAY (works with or without WebGL) ═══════════════════════════════════ */
-const corePin = $("#corePin");
-const sm = (a, b, v) => { const x = Math.min(1, Math.max(0, (v - a) / (b - a))); return x * x * (3 - 2 * x); };
-function vis(p, a, b){ return Math.min(sm(a, a + .07, p), 1 - sm(b - .07, b, p)); }
-function updateCore(){
-  if (!corePin) return;
-  const r = corePin.getBoundingClientRect();
-  window.__coreOnScreen = r.top < 0 && r.bottom > innerHeight;
-  if (r.bottom < 0 || r.top > innerHeight) return;
-  const prog = Math.min(1, Math.max(0, -r.top / (corePin.offsetHeight - innerHeight)));
-  [[$("#cl1"), -.1, .24], [$("#cl2"), .3, .64], [$("#cl3"), .7, .97]].forEach(([el, a, b]) => {
-    const v = vis(prog, a, b);
-    el.style.opacity = v; el.style.transform = `translateY(${(1 - v) * 30}px)`; el.style.filter = RM ? "none" : `blur(${(1 - v) * 12}px)`;
-  });
-  const sig = sm(.1, .56, prog);
-  $("#hudState").textContent = sig < .05 ? "NOISE" : sig < .98 ? "ASSEMBLING" : prog > .86 ? "RELEASE" : "SIGNAL";
-  $("#hudPct").textContent = Math.round(sig * 100) + "%";
-  $("#hudLat").textContent = sig < .5 ? "HIGH" : sig < .98 ? "DROPPING" : "LOW";
-  $("#hudBar").style.transform = `scaleX(${prog})`;
-}
-
-/* ═══════════════════════════════════ 3D (lazy – only loads near the section) ═══════════════════════════════════ */
+/* ═══════════════════════════════════ 3D (background particles + CTA logo) ═══════════════════════════════════ */
 function webglOK(){ try { const c = document.createElement("canvas"); return !!(c.getContext("webgl2") || c.getContext("webgl")); } catch (e) { return false; } }
 let fx3d = null;
 const loadFx = () => fx3d || (fx3d = import("/vendor/fx3d.js"));
+function startBackground3D(){
+  if (!webglOK() || RM) return;
+  loadFx().then(m => {
+    const stops = [
+      {el: $("#hero"), shape: 0, x: innerWidth > 1100 ? 2.6 : 0},   // galaxy behind the hero
+      {el: $("#core"), shape: 1, x: 0},                                // assembles into the ET logo
+      {el: $("#features"), shape: 2, x: 0},                            // sphere
+      {el: $("#tweaks"), shape: 3, x: 0},                              // wave field
+      {el: $("#safety"), shape: 4, x: 0},                              // ring
+      {el: $("#pricing"), shape: 2, x: 0},                             // sphere again
+      {el: $("#download"), shape: 1, x: 0}                             // logo to finish
+    ];
+    window.__bg3d = m.initBackground({canvas: $("#bg3d"), stops});
+    $("#bg3d").classList.add("on");
+  }).catch(err => console.warn("3D background disabled:", err));
+}
 if (webglOK()) {
-  $("#hudN").textContent = innerWidth < 820 ? "12,000" : "24,000";
-  const lazy3d = new IntersectionObserver((es, o) => es.forEach(e => {
-    if (!e.isIntersecting) return; o.unobserve(e.target);
-    loadFx().then(m => {
-      if (e.target.id === "core") { m.initCore({canvas: $("#coreCanvas"), pin: corePin}); $("#core").classList.add("ready"); }
-      else { m.initLogo3D({canvas: $("#logoCanvas")}); $("#logo3d").classList.add("ready"); }
-    }).catch(err => console.warn("3D disabled:", err));
-  }), {rootMargin: "120% 0px"});
-  lazy3d.observe($("#core")); lazy3d.observe($("#logo3d"));
+  new IntersectionObserver((es, o) => es.forEach(e => {
+    if (!e.isIntersecting) return; o.disconnect();
+    loadFx().then(m => { m.initLogo3D({canvas: $("#logoCanvas")}); $("#logo3d").classList.add("ready"); }).catch(() => {});
+  }), {rootMargin: "100% 0px"}).observe($("#logo3d"));
 }
 
 
@@ -1830,7 +1738,6 @@ applyLang();
 $$("[data-r]").forEach(el => { if (!el.closest(".hero")) io.observe(el); });
 io.observe($("#monitor"));
 $$(".h2").forEach(h => { if (!h.hasAttribute("data-r")) io.observe(h); });
-initGL();
 onScroll();
 requestAnimationFrame(tickerLoop);
 const lenisScript = document.createElement("script");
