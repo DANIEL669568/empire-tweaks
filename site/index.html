@@ -455,6 +455,21 @@ footer{position:relative;padding:90px 0 40px;overflow:hidden}
   opacity:0;transform:translateY(24px) scale(.96);transition:opacity .45s var(--ease),transform .6s var(--ease)}
 .modal.show .box{opacity:1;transform:none}
 .box.wide{width:min(640px,100%)}
+#appLink .box{text-align:center;padding:44px 38px 36px}
+#appLink .al-logo{width:84px;height:66px;margin:0 auto 18px;filter:drop-shadow(0 0 28px rgba(43,140,255,.55))}
+#appLink h3{font-size:26px;margin-bottom:8px}
+#appLink .al-pc{display:flex;align-items:center;justify-content:center;gap:14px;margin:22px 0 26px;color:var(--dim)}
+#appLink .al-pc i{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;background:rgba(255,255,255,.04);border:1px solid var(--edge2)}
+#appLink .al-pc b{flex:0 0 70px;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);background-size:200% 100%;animation:alFlow 1.4s linear infinite}
+@keyframes alFlow{from{background-position:100% 0}to{background-position:-100% 0}}
+#appLink .btn-g{background:#fff;color:#1b1f2a;border:0;font-weight:700}
+#appLink .btn-g:hover{background:#eef3ff}
+#appLink .al-alt{margin-top:16px;font-size:13px;color:var(--dim)}
+#appLink .al-alt a{color:var(--cyan);cursor:pointer}
+#appLink .al-ok{width:76px;height:76px;margin:6px auto 18px;border-radius:50%;display:grid;place-items:center;background:rgba(200,255,77,.12);border:1px solid rgba(200,255,77,.5);color:var(--lime);box-shadow:0 0 60px -10px rgba(200,255,77,.6);animation:alPop .6s var(--ease)}
+@keyframes alPop{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+#appLink .al-spin{width:42px;height:42px;margin:10px auto 18px;border-radius:50%;border:3px solid rgba(255,255,255,.1);border-top-color:var(--cyan);animation:alSpin .8s linear infinite}
+@keyframes alSpin{to{transform:rotate(360deg)}}
 .x{position:absolute;top:16px;inset-inline-end:16px;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:var(--dim);background:rgba(255,255,255,.04);border:1px solid var(--edge);transition:.3s}
 .x:hover{color:#fff;transform:rotate(90deg)}
 .box h3{font-family:var(--display);font-weight:800;font-size:26px;letter-spacing:-.02em}
@@ -1091,6 +1106,12 @@ html.rm #loader,html.rm #bg3d{display:none}
     <div class="switch" id="authSwitch"></div>
     <div class="switch"><a onclick="setAuthMode('reset')" data-t="forgot">Forgot password?</a></div>
   </div>
+</div>
+
+<!-- CONNECT THE APP (opened by the desktop app) -->
+<div class="modal" id="appLink" role="dialog" aria-modal="true" aria-labelledby="alTitle">
+  <div class="scrim"></div>
+  <div class="box"><div id="alBody"></div></div>
 </div>
 
 <!-- ACCOUNT MODAL -->
@@ -1843,15 +1864,66 @@ window.signOutNow = async () => { await signOut(auth); closeModal("accModal"); }
 onAuthStateChanged(auth, async u => {
   USER = u; ACC = null;
   renderNav(); renderBuy();
-  if (!u) { if (LINK_CODE) openAuth(); return; }
+  if (!u) { if (LINK_CODE) showAppLink("signin"); return; }
   await loadAccount();
   const oldSub = localStorage.getItem("et_subscription");
   if (oldSub && ACC && !ACC.pro) {
     const r = await api("/api/subscription/activate", {body: {subscriptionID: oldSub}});
     if (r.success) { ACC = r; localStorage.removeItem("et_subscription"); toast(t("activated")); renderAll(); }
   }
-  if (LINK_CODE || location.hash === "#account") openAccount();
+  if (LINK_CODE) { closeModal("authModal"); if (LINK_AUTO) confirmAppLink(); else showAppLink("confirm"); }
+  else if (location.hash === "#account") openAccount();
 });
+
+/* ── connect the desktop app: one click, no codes ── */
+let LINK_AUTO = false;
+const he = () => LANG === "he";
+const AL = {
+  pc: `<div class="al-pc"><i><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></i><b></b><i><svg width="26" height="26"><use href="#i-google"/></svg></i></div>`
+};
+window.showAppLink = (state, msg = "") => {
+  const b = document.getElementById("alBody");
+  const email = USER ? (USER.email || "") : "";
+  if (state === "signin") b.innerHTML = `${AL.pc}
+    <h3 id="alTitle">${he() ? "התחברות לאפליקציה" : "Sign in to the app"}</h3>
+    <p class="muted">${he() ? "התחבר עם Google והאפליקציה תתחבר אוטומטית לחשבון שלך." : "Sign in with Google and the Empire Tweaks app connects to your account automatically."}</p>
+    <button class="btn btn-g btn-lg w100" style="margin-top:26px" onclick="appLinkGoogle()"><svg><use href="#i-google"/></svg><span>${he() ? "המשך עם Google" : "Continue with Google"}</span></button>
+    <div class="err" id="alErr">${msg}</div>
+    <div class="al-alt">${he() ? "אין לך Google?" : "No Google account?"} <a onclick="appLinkEmail()">${he() ? "התחבר עם אימייל" : "Use email instead"}</a></div>`;
+  else if (state === "confirm") b.innerHTML = `${AL.pc}
+    <h3 id="alTitle">${he() ? "לחבר את האפליקציה?" : "Connect the app?"}</h3>
+    <p class="muted">${he() ? "האפליקציה במחשב הזה תתחבר לחשבון" : "The Empire Tweaks app on this PC will be signed in as"}<br><b style="color:var(--text)">${email}</b></p>
+    <button class="btn btn-main btn-lg w100" style="margin-top:26px" onclick="confirmAppLink()">${he() ? "כן, חבר" : "Yes, connect"}</button>
+    <div class="err" id="alErr">${msg}</div>
+    <div class="al-alt"><a onclick="appLinkSwitch()">${he() ? "התחבר עם חשבון אחר" : "Use a different account"}</a></div>`;
+  else if (state === "busy") b.innerHTML = `<div class="al-spin"></div><h3 id="alTitle">${he() ? "מחבר…" : "Connecting…"}</h3>`;
+  else if (state === "done") b.innerHTML = `<div class="al-ok"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h3 id="alTitle">${he() ? "מחובר!" : "You're connected!"}</h3>
+    <p class="muted">${he() ? "האפליקציה מחוברת לחשבון שלך. אפשר לסגור את הדף ולחזור לאפליקציה." : "The app is signed in to your account. You can close this tab and go back to the app."}</p>
+    <button class="btn btn-ghost btn-lg w100" style="margin-top:24px" onclick="closeModal('appLink')">${he() ? "סגור" : "Close"}</button>`;
+  else if (state === "expired") b.innerHTML = `${AL.pc}<h3 id="alTitle">${he() ? "פג התוקף" : "This sign-in expired"}</h3>
+    <p class="muted">${he() ? "חזור לאפליקציה ולחץ שוב על \"המשך עם Google\"." : "Go back to the app and click \"Continue with Google\" again."}</p>
+    <button class="btn btn-ghost btn-lg w100" style="margin-top:24px" onclick="closeModal('appLink')">${he() ? "סגור" : "Close"}</button>`;
+  openModal("appLink");
+};
+window.appLinkGoogle = async () => {
+  LINK_AUTO = true;
+  try { await signInWithPopup(auth, new GoogleAuthProvider()); }
+  catch (e) { LINK_AUTO = false; const m = niceErr(e); if (m) showAppLink("signin", m); }
+};
+window.appLinkEmail = () => { LINK_AUTO = true; closeModal("appLink"); openAuth("signin"); };
+window.appLinkSwitch = async () => { await signOut(auth); };
+window.confirmAppLink = async () => {
+  if (!LINK_CODE) return;
+  showAppLink("busy");
+  const r = await api("/api/app/link/confirm", {body: {code: LINK_CODE}});
+  LINK_AUTO = false;
+  if (r.success) {
+    LINK_CODE = ""; history.replaceState(null, "", location.pathname);
+    showAppLink("done"); setTimeout(() => { try { window.close(); } catch (e) {} }, 4000);
+  } else if (/expired/i.test(r.message || "")) showAppLink("expired");
+  else showAppLink("confirm", r.message || "Error");
+};
 async function loadAccount(){ try { const r = await api("/api/account"); if (r.success) ACC = r; } catch (e) {} renderAll(); }
 function renderAll(){ renderNav(); renderBuy(); renderAccount(); }
 function initials(){ return ((USER && (USER.displayName || USER.email)) || "?").trim()[0].toUpperCase(); }
@@ -1880,7 +1952,7 @@ window.renderAccount = () => {
   document.getElementById("accBuy").style.display = pro ? "none" : "";
   document.getElementById("accCancel").style.display = pro && !ending && ACC.subscription_id ? "" : "none";
   document.getElementById("restoreBox").style.display = pro ? "none" : "";
-  document.getElementById("linkCard").style.display = LINK_CODE ? "" : "none";
+  document.getElementById("linkCard").style.display = "none";
   document.getElementById("linkCode").textContent = LINK_CODE;
 };
 window.copyKey = () => { navigator.clipboard.writeText(ACC.license_key); toast(t("copied")); };
