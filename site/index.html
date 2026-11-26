@@ -515,7 +515,7 @@ html[dir=rtl] .h2 .wd>span{transform-origin:100% 100%}
 .h2 em .wd>span{background:linear-gradient(100deg,var(--cyan),var(--blue) 60%,var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
 [data-r].h2{opacity:1;transform:none}
 @media (max-width:820px){.logo3d{width:240px;height:180px}}
-@media (prefers-reduced-motion:reduce){.h2 .wd>span{transform:none!important}}
+html.rm .h2 .wd>span{transform:none!important}
 
 #features .bento,#safety,#faq,footer{content-visibility:auto;contain-intrinsic-size:auto 900px}
 
@@ -597,12 +597,14 @@ html[dir=rtl] .cmp-handle{left:auto;right:var(--split,50%)}
   .final{padding:80px 22px;border-radius:32px}
   .mf-foot{gap:28px}
 }
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation:none!important;transition-duration:.01ms!important}
-  [data-r],.line-mask>span{opacity:1!important;transform:none!important}
-  .mf .w{color:#eef3ff}
-  #loader{display:none}
-}
+/* reduced motion – switched on by the visitor (footer toggle), not silently by the OS:
+   Windows "best performance" visual effects (a common tweak) also reports reduce-motion */
+html.rm *,html.rm *::before,html.rm *::after{animation:none!important;transition-duration:.01ms!important}
+html.rm [data-r],html.rm .line-mask>span{opacity:1!important;transform:none!important}
+html.rm .mf .w{color:#eef3ff}
+html.rm #loader,html.rm #bg3d{display:none}
+.motion-t{display:inline-flex;align-items:center;gap:10px;color:var(--dim);font-size:13px}
+.motion-t .sw{cursor:pointer}
 </style>
 </head>
 <body class="locked">
@@ -1066,7 +1068,7 @@ html[dir=rtl] .cmp-handle{left:auto;right:var(--split,50%)}
       </div>
     </div>
     <div class="wordmark" aria-hidden="true">EMPIRE</div>
-    <div class="foot-bot"><span>© <span id="yr"></span> Empire Tweaks</span><span data-t="footNote">Made for gamers who read the changelog.</span></div>
+    <div class="foot-bot"><span>© <span id="yr"></span> Empire Tweaks</span><label class="motion-t"><span data-t="motionLbl">Animations</span><i class="sw" id="motionSw" role="switch" tabindex="0"></i></label><span data-t="footNote">Made for gamers who read the changelog.</span></div>
   </div>
 </footer>
 
@@ -1175,7 +1177,7 @@ best:"BEST VALUE",perMonth:"/ month",proTag:"Everything, unlimited",p1:"All 22 t
 getPro:"Get PRO",payNote:"Secure payment with PayPal or card. Unlocks instantly in the app.",signInToBuy:"Sign in to get PRO",youArePro:"You're PRO – thank you",
 faqKick:"FAQ",faqH2:"Questions? <em>Answers.</em>",
 dlH2:"Ready to feel<br><em>the difference?</em>",dlSub:"Free download for Windows 10 and 11. Sign in from the app to unlock PRO.",dlBtn:"Download for Windows",dlNote:"Version",
-footNote:"Made for gamers who read the changelog.",
+footNote:"Made for gamers who read the changelog.",motionLbl:"Animations",
 authSub:"Use the same account in the app and on the website.",google:"Continue with Google",or:"or",name:"Name",email:"Email",password:"Password",
 forgot:"Forgot password?",createAcc:"Create account",noAcc:"No account?",haveAcc:"Already have an account?",resetTitle:"Reset password",resetBtn:"Send reset link",backToSignIn:"Back to sign in",
 resetSent:"Check your inbox for the reset link.",
@@ -1226,7 +1228,7 @@ best:"הכי משתלם",perMonth:"/ לחודש",proTag:"הכל, בלי הגבל
 getPro:"שדרוג ל-PRO",payNote:"תשלום מאובטח ב-PayPal או בכרטיס. נפתח מיד באפליקציה.",signInToBuy:"התחבר כדי לשדרג",youArePro:"אתה PRO – תודה",
 faqKick:"שאלות",faqH2:"שאלות? <em>תשובות.</em>",
 dlH2:"מוכן להרגיש<br><em>את ההבדל?</em>",dlSub:"הורדה חינמית ל-Windows 10 ו-11. מתחברים מהאפליקציה כדי לפתוח PRO.",dlBtn:"הורדה ל-Windows",dlNote:"גרסה",
-footNote:"נבנה לגיימרים שקוראים את ה-changelog.",
+footNote:"נבנה לגיימרים שקוראים את ה-changelog.",motionLbl:"אנימציות",
 authSub:"אותו חשבון באפליקציה ובאתר.",google:"המשך עם Google",or:"או",name:"שם",email:"אימייל",password:"סיסמה",
 forgot:"שכחת סיסמה?",createAcc:"יצירת חשבון",noAcc:"אין לך חשבון?",haveAcc:"כבר יש לך חשבון?",resetTitle:"איפוס סיסמה",resetBtn:"שלח קישור לאיפוס",backToSignIn:"חזרה להתחברות",
 resetSent:"שלחנו לך קישור לאיפוס במייל.",
@@ -1274,7 +1276,9 @@ const CATS = {gaming:["Gaming","גיימינג"],network:["Network","רשת"],sy
 
 let LANG = localStorage.getItem("et_lang") || ((navigator.language || "").startsWith("he") ? "he" : "en");
 const t = k => (T[LANG] && T[LANG][k] !== undefined ? T[LANG][k] : T.en[k]) ?? k;
-const RM = matchMedia("(prefers-reduced-motion:reduce)").matches;
+const MOTION_PREF = localStorage.getItem("et_motion");          // "on" | "off" | null (default: on)
+const RM = MOTION_PREF === "off";
+document.documentElement.classList.toggle("rm", RM);
 const FINE = matchMedia("(pointer:fine)").matches;
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const closestOf = (t, sel) => (t && t.closest ? t.closest(sel) : null);
@@ -1730,6 +1734,16 @@ document.addEventListener("pointerdown", e => {
     letters.forEach(l => { const r = l.getBoundingClientRect(), d = Math.abs(mx - (r.left + r.width / 2)), k = Math.max(0, 1 - d / 320);
       l.style.transform = `translateY(${-k * 26}px)`; l.style.color = k > .05 ? `rgba(120,200,255,${.15 + k * .5})` : ""; });
   }
+})();
+
+
+/* animations on/off (footer) */
+(function(){
+  const sw = $("#motionSw"); if (!sw) return;
+  sw.classList.toggle("on", !RM);
+  const flip = () => { localStorage.setItem("et_motion", RM ? "on" : "off"); location.reload(); };
+  sw.addEventListener("click", flip);
+  sw.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); } });
 })();
 
 /* ═══════════════════════════════════ BOOT ═══════════════════════════════════ */

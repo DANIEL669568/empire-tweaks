@@ -6,7 +6,7 @@
 import * as THREE from "three";
 import { RoomEnvironment } from "./RoomEnvironment.js";
 
-const RM = matchMedia("(prefers-reduced-motion:reduce)").matches;
+const RM = document.documentElement.classList.contains("rm");
 const MOBILE = innerWidth < 820;
 const SKEW = Math.tan(-14 * Math.PI / 180);
 const LOGO = [
