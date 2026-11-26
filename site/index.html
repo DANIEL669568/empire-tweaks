@@ -1652,7 +1652,7 @@ function splitAllHeadings(){ $$(".h2").forEach(splitWords); }
 /* ═══════════════════════════════════ 3D (background particles + CTA logo) ═══════════════════════════════════ */
 function webglOK(){ try { const c = document.createElement("canvas"); return !!(c.getContext("webgl2") || c.getContext("webgl")); } catch (e) { return false; } }
 let fx3d = null;
-const loadFx = () => fx3d || (fx3d = import("/vendor/fx3d.js"));
+const loadFx = () => fx3d || (fx3d = import("/vendor/fx3d.js?v=12"));
 function startBackground3D(){
   if (!webglOK() || RM) return;
   loadFx().then(m => {

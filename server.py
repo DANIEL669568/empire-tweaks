@@ -96,6 +96,12 @@ def make_owner(uid, data, email):
     return data
 
 
+def auth_err():
+    if db is None:
+        return err("The server isn't connected to Firebase yet (FIREBASE_SERVICE_ACCOUNT is missing on Render).", 503)
+    return err("Please sign in again.", 401)
+
+
 def new_license_key():
     chars = string.ascii_uppercase + string.digits
     return "ET-" + "-".join("".join(secrets.choice(chars) for _ in range(4)) for _ in range(3))
@@ -198,7 +204,9 @@ def public_account(uid, data, email=""):
 @app.after_request
 def cache_headers(resp):
     p = request.path
-    if p.startswith(("/vendor/", "/fonts/", "/img/")) or p == "/favicon.ico":
+    if p == "/vendor/fx3d.js" or p.endswith(".html"):
+        resp.headers["Cache-Control"] = "no-cache"           # our own code: always revalidate
+    elif p.startswith(("/vendor/", "/fonts/", "/img/")) or p == "/favicon.ico":
         resp.headers["Cache-Control"] = "public, max-age=86400"
     elif not p.startswith("/api/") and p != "/verify-license":
         resp.headers["Cache-Control"] = "no-cache"   # always check for a new version of the page
@@ -243,7 +251,7 @@ def api_version():
 def api_account():
     u = current_user()
     if not u:
-        return err("Please sign in again.", 401)
+        return auth_err()
     snap = user_doc(u["uid"]).get()
     data = snap.to_dict() if snap.exists else {"email": u.get("email", "")}
     if is_owner(u.get("email"), u.get("email_verified")):
@@ -257,7 +265,7 @@ def api_activate():
     """Called by the site right after PayPal approves (or to restore an old subscription)."""
     u = current_user()
     if not u:
-        return err("Please sign in again.", 401)
+        return auth_err()
     sub_id = (request.get_json(silent=True) or {}).get("subscriptionID", "").strip()
     if not sub_id.startswith("I-"):
         return err("That doesn't look like a PayPal subscription ID (it starts with I-).")
@@ -292,7 +300,7 @@ def api_activate():
 def api_cancel():
     u = current_user()
     if not u:
-        return err("Please sign in again.", 401)
+        return auth_err()
     ref = user_doc(u["uid"])
     snap = ref.get()
     data = snap.to_dict() if snap.exists else {}
@@ -356,7 +364,7 @@ def link_start():
 def link_confirm():
     u = current_user()
     if not u:
-        return err("Please sign in again.", 401)
+        return auth_err()
     code = ((request.get_json(silent=True) or {}).get("code") or "").strip().upper()
     with _links_lock:
         _clean_links()
@@ -406,7 +414,7 @@ def app_login():
     """The desktop app signs in directly (email + password via Firebase) and sends the ID token here."""
     u = current_user()
     if not u:
-        return err("Sign-in failed. Check your email and password.", 401)
+        return auth_err() if db is None else err("Sign-in failed. Check your email and password.", 401)
     return jsonify(app_account(u["uid"], u.get("email", ""), u.get("email_verified")))
 
 
