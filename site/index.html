@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Empire Tweaks — More FPS. Less Lag. One Click.</title>
+<meta name="description" content="Empire Tweaks is a Windows optimizer for gamers: real, reversible tweaks for higher FPS, lower latency and a cleaner PC, plus an AI assistant that fixes problems for you.">
+<meta property="og:title" content="Empire Tweaks — More FPS. Less Lag. One Click.">
+<meta property="og:description" content="22 real, reversible Windows tweaks, a junk cleaner, a live monitor and an AI assistant.">
+<meta property="og:image" content="/img/app-home.png">
+<meta name="theme-color" content="#05070d">
+<link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+<link rel="alternate icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05070d; --bg2:#0a0f1b; --card:#0d1424; --card2:#111a2e; --line:#1a2540; --line2:#24365c;
+  --a:#1e8fff; --a2:#00c8ff; --a3:#7b5cff; --pro:#ffc53d; --ok:#22d39a; --bad:#ff5470;
+  --t:#eaf1fb; --m:#8592ad; --r:18px;
+  --font:"Inter",system-ui,sans-serif;
+}
+html[dir=rtl]{--font:"Heebo","Inter",system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--t);font-family:var(--font);overflow-x:hidden;-webkit-font-smoothing:antialiased;line-height:1.55}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input{font:inherit}
+::selection{background:#1e8fff55}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+.mono{font-family:"JetBrains Mono",monospace}
+
+/* ───── background ───── */
+#bg{position:fixed;inset:0;z-index:-2;width:100%;height:100%}
+.noise{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.glowball{position:fixed;width:620px;height:620px;border-radius:50%;filter:blur(120px);opacity:.33;z-index:-1;pointer-events:none;
+  background:radial-gradient(circle,var(--a) 0%,transparent 70%);transition:transform .25s ease-out;left:-310px;top:-310px}
+
+/* ───── nav ───── */
+nav{position:fixed;top:14px;left:50%;transform:translateX(-50%);width:min(1180px,calc(100% - 28px));z-index:50;
+  display:flex;align-items:center;gap:22px;padding:10px 12px 10px 18px;border-radius:16px;
+  background:rgba(10,15,27,.62);backdrop-filter:blur(18px) saturate(160%);border:1px solid rgba(80,120,200,.16);transition:.3s}
+nav.scrolled{background:rgba(8,12,22,.88);box-shadow:0 10px 40px #0008}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.06em;font-size:15px}
+.brand img{width:38px}
+.nav-links{display:flex;gap:4px;margin-inline-start:12px}
+.nav-links a{padding:8px 12px;border-radius:10px;color:#b6c2da;font-weight:500;font-size:14px;transition:.2s}
+.nav-links a:hover{color:#fff;background:#ffffff0d}
+.nav-r{margin-inline-start:auto;display:flex;align-items:center;gap:8px}
+.lang{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.lang button{padding:7px 10px;font-size:12px;font-weight:700;color:var(--m)}
+.lang button.on{background:#12305e;color:#fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:11px 18px;border-radius:12px;font-weight:700;font-size:14px;transition:transform .15s,box-shadow .25s,background .25s;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn-p{background:linear-gradient(90deg,var(--a),var(--a2));color:#fff;box-shadow:0 0 0 1px #ffffff1a inset,0 8px 30px -8px #1e8fffaa}
+.btn-p:hover{box-shadow:0 0 0 1px #ffffff33 inset,0 10px 40px -6px #1e8fffdd;transform:translateY(-1px)}
+.btn-g{background:#ffffff0a;border:1px solid var(--line2)}
+.btn-g:hover{background:#ffffff14;border-color:#3a5a99}
+.btn-pro{background:linear-gradient(90deg,#ffb020,#ffd866);color:#1a1200;box-shadow:0 8px 30px -10px #ffb020}
+.btn-pro:hover{transform:translateY(-1px);box-shadow:0 10px 40px -8px #ffb020}
+.btn-lg{padding:15px 26px;font-size:16px;border-radius:14px}
+.btn svg{width:18px;height:18px}
+.avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:linear-gradient(135deg,var(--a),var(--a3));cursor:pointer;border:2px solid #ffffff22}
+.avatar.pro{background:linear-gradient(135deg,#ffb020,#ffd866);color:#1a1200}
+.burger{display:none}
+
+/* ───── hero ───── */
+.hero{min-height:100vh;display:flex;align-items:center;padding:140px 0 80px;position:relative}
+.hero-grid{display:grid;grid-template-columns:1.02fr 1fr;gap:40px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;border-radius:99px;border:1px solid #1f4f99;background:#0c1a33aa;font-size:13px;font-weight:600;color:#b9d6ff}
+.pill b{background:var(--a);color:#fff;border-radius:99px;padding:3px 9px;font-size:11px;letter-spacing:.05em}
+h1{font-size:clamp(44px,6.6vw,86px);line-height:.98;font-weight:900;letter-spacing:-.035em;margin:22px 0 20px}
+html[dir=rtl] h1{letter-spacing:-.01em;line-height:1.08}
+.grad{background:linear-gradient(100deg,#fff 0%,#9fd8ff 30%,var(--a2) 50%,var(--a) 70%,#fff 100%);background-size:220% auto;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 6s linear infinite}
+@keyframes shine{to{background-position:-220% center}}
+.lead{font-size:clamp(16px,1.6vw,19px);color:#aab6cf;max-width:560px}
+.cta{display:flex;gap:12px;margin-top:34px;flex-wrap:wrap}
+.trust{display:flex;gap:22px;margin-top:34px;color:var(--m);font-size:13px;flex-wrap:wrap}
+.trust span{display:flex;align-items:center;gap:7px}
+.trust svg{width:16px;height:16px;color:var(--ok)}
+
+.stage{perspective:1600px;position:relative}
+.screen{position:relative;border-radius:16px;overflow:hidden;border:1px solid #2a3f6b;transform-style:preserve-3d;
+  transform:rotateY(-14deg) rotateX(7deg);transition:transform .4s cubic-bezier(.2,.8,.2,1);
+  box-shadow:0 50px 120px -30px #000,0 0 0 1px #ffffff0a,0 0 120px -20px #1e8fff66}
+html[dir=rtl] .screen{transform:rotateY(14deg) rotateX(7deg)}
+.screen img{display:block;width:100%}
+.screen::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,#ffffff18,transparent 40%);pointer-events:none}
+.float{position:absolute;padding:10px 14px;border-radius:12px;background:rgba(12,22,42,.85);backdrop-filter:blur(10px);border:1px solid #2a4f8f;
+  font-weight:800;font-size:14px;display:flex;align-items:center;gap:9px;box-shadow:0 20px 40px -10px #000;animation:bob 5s ease-in-out infinite}
+.float i{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 12px var(--ok)}
+.f1{top:-18px;left:8%}.f2{bottom:16%;left:-26px;animation-delay:-1.6s}.f3{bottom:-16px;right:10%;animation-delay:-3s}
+@keyframes bob{50%{transform:translateY(-10px)}}
+
+/* ───── marquee ───── */
+.marquee{border-block:1px solid var(--line);background:#070b15;overflow:hidden;padding:16px 0;position:relative}
+.marquee::before,.marquee::after{content:"";position:absolute;top:0;bottom:0;width:120px;z-index:2}
+.marquee::before{left:0;background:linear-gradient(90deg,#070b15,transparent)}
+.marquee::after{right:0;background:linear-gradient(-90deg,#070b15,transparent)}
+.track{display:flex;gap:44px;width:max-content;animation:scroll 40s linear infinite}
+.track span{display:flex;align-items:center;gap:12px;color:#7d8aa8;font-weight:600;white-space:nowrap;font-size:14px}
+.track span::before{content:"";width:6px;height:6px;border-radius:2px;background:var(--a);transform:rotate(45deg)}
+@keyframes scroll{to{transform:translateX(-50%)}}
+html[dir=rtl] .track{animation-direction:reverse}
+
+/* ───── sections ───── */
+section{padding:120px 0;position:relative}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;color:var(--a2);font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase}
+.eyebrow::before{content:"";width:26px;height:2px;background:linear-gradient(90deg,transparent,var(--a2))}
+h2{font-size:clamp(32px,4.2vw,56px);font-weight:900;letter-spacing:-.03em;line-height:1.05;margin:14px 0 16px}
+.sub{color:#9aa7c2;font-size:17px;max-width:640px}
+.center{text-align:center}.center .sub{margin:0 auto}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:60px}
+.stat{padding:26px;border-radius:var(--r);background:linear-gradient(180deg,#0d1526,#0a101d);border:1px solid var(--line)}
+.stat b{display:block;font-size:44px;font-weight:900;letter-spacing:-.03em;background:linear-gradient(90deg,#fff,#9fd8ff);-webkit-background-clip:text;color:transparent}
+.stat span{color:var(--m);font-size:14px}
+
+/* bento */
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-top:56px}
+.cell{position:relative;border-radius:22px;padding:28px;background:var(--card);border:1px solid var(--line);overflow:hidden;min-height:230px;isolation:isolate}
+.cell::before{content:"";position:absolute;inset:0;z-index:-1;opacity:0;transition:opacity .3s;
+  background:radial-gradient(420px circle at var(--x,50%) var(--y,50%),#1e8fff26,transparent 60%)}
+.cell:hover::before{opacity:1}
+.cell:hover{border-color:#2a4475}
+.c3{grid-column:span 3}.c2{grid-column:span 2}.c4{grid-column:span 4}
+.ic{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,#12305e,#0c1a33);border:1px solid #1f4f99;margin-bottom:18px}
+.ic svg{width:22px;height:22px;color:var(--a2)}
+.cell h3{font-size:21px;font-weight:800;margin-bottom:8px;letter-spacing:-.01em}
+.cell p{color:#93a0bb;font-size:15px}
+.bars{display:flex;align-items:flex-end;gap:7px;height:90px;margin-top:22px}
+.bars i{flex:1;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,var(--a2),#123a7a);transform-origin:bottom;animation:grow 2.6s ease-in-out infinite}
+@keyframes grow{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.ping{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.ping div{flex:1;min-width:90px;padding:12px;border-radius:12px;background:#0a1222;border:1px solid var(--line)}
+.ping small{color:var(--m);font-size:12px;display:block}
+.ping b{font-size:22px;color:var(--ok)}
+.chat{margin-top:20px;display:flex;flex-direction:column;gap:8px}
+.msg{padding:10px 14px;border-radius:14px;font-size:14px;max-width:85%}
+.msg.u{align-self:flex-end;background:linear-gradient(90deg,var(--a),#1b6fe0)}
+.msg.b{background:var(--card2);border:1px solid var(--line)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips span{font-size:12px;padding:5px 10px;border-radius:9px;background:#0f2a52;border:1px solid #1f4f99;color:#cfe5ff}
+.toggle-demo{margin-top:20px;display:flex;flex-direction:column;gap:9px}
+.tg{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-radius:12px;background:#0a1222;border:1px solid var(--line);font-size:14px;font-weight:600}
+.sw{width:42px;height:24px;border-radius:99px;background:#1c2741;position:relative;transition:.3s;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.3s}
+.sw.on{background:var(--a)}.sw.on::after{left:21px}
+
+/* showcase */
+.tabs{display:inline-flex;gap:6px;padding:6px;border-radius:14px;background:#0a1020;border:1px solid var(--line);margin:34px auto 26px}
+.tabs button{padding:10px 18px;border-radius:10px;font-weight:700;font-size:14px;color:var(--m);transition:.2s}
+.tabs button.on{background:linear-gradient(90deg,var(--a),var(--a2));color:#fff}
+.showcase{position:relative;max-width:1060px;margin:0 auto;border-radius:18px;overflow:hidden;border:1px solid #2a3f6b;
+  box-shadow:0 60px 140px -40px #000,0 0 160px -40px #1e8fff88}
+.showcase img{display:block;width:100%;transition:opacity .35s}
+.showcase .bar{height:34px;background:#0b111e;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:7px;padding:0 14px}
+.showcase .bar i{width:11px;height:11px;border-radius:50%;background:#26324d}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:56px;counter-reset:s}
+.step{padding:30px;border-radius:22px;background:var(--card);border:1px solid var(--line);position:relative}
+.step::before{counter-increment:s;content:"0" counter(s);font-family:"JetBrains Mono";font-weight:700;font-size:13px;color:var(--a2);
+  padding:5px 10px;border-radius:8px;background:#0c1a33;border:1px solid #1f4f99}
+.step h3{margin:20px 0 8px;font-size:21px;font-weight:800}
+.step p{color:#93a0bb}
+
+/* tweaks explorer */
+.tw-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:34px 0 20px}
+.tw-tabs button{padding:9px 16px;border-radius:11px;border:1px solid var(--line);font-weight:700;font-size:14px;color:#a8b4cc;background:#0a1020}
+.tw-tabs button.on{border-color:var(--a);color:#fff;background:#12305e}
+.tw-list{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tw{display:flex;gap:14px;align-items:flex-start;padding:18px;border-radius:16px;background:var(--card);border:1px solid var(--line);animation:fadeUp .4s both}
+.tw .sw{margin-top:2px}
+.tw h4{font-size:15.5px;font-weight:700;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tw p{color:#8f9bb6;font-size:13.5px;margin-top:3px}
+.tag{font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:7px;letter-spacing:.04em}
+.tag.free{background:#22d39a1f;color:var(--ok);border:1px solid #22d39a55}
+.tag.pro{background:#ffc53d1f;color:var(--pro);border:1px solid #ffc53d66}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}}
+
+/* safety */
+.safety{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center}
+.term{border-radius:18px;background:#070b14;border:1px solid var(--line2);padding:22px;font-family:"JetBrains Mono",monospace;font-size:13.5px;line-height:1.9;
+  box-shadow:0 40px 90px -30px #000;direction:ltr;text-align:left}
+.term .d{color:#4b5a7a}.term .g{color:var(--ok)}.term .b{color:var(--a2)}.term .y{color:var(--pro)}
+.ticks{display:flex;flex-direction:column;gap:16px;margin-top:28px}
+.tick{display:flex;gap:14px}
+.tick svg{width:22px;height:22px;flex:none;color:var(--ok);margin-top:2px}
+.tick b{display:block;font-size:16px}
+.tick span{color:#93a0bb;font-size:14.5px}
+
+/* pricing */
+.plans{display:grid;grid-template-columns:1fr 1.12fr;gap:20px;max-width:900px;margin:56px auto 0;align-items:stretch}
+.plan{border-radius:26px;padding:34px;background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column}
+.plan.pro{background:linear-gradient(160deg,#10284f,#0a1222 60%);border:1px solid #2d5bb0;position:relative;box-shadow:0 0 0 1px #ffffff08 inset,0 40px 120px -40px #1e8fff88}
+.plan.pro::before{content:"";position:absolute;inset:-1px;border-radius:26px;padding:1px;background:linear-gradient(140deg,#ffd866,transparent 30%,transparent 70%,#00c8ff);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.badge{position:absolute;top:-13px;inset-inline-end:26px;background:linear-gradient(90deg,#ffb020,#ffd866);color:#1a1200;font-weight:900;font-size:12px;padding:6px 12px;border-radius:9px;letter-spacing:.05em}
+.plan h3{font-size:20px;font-weight:800}
+.price{font-size:58px;font-weight:900;letter-spacing:-.04em;margin:12px 0 4px;line-height:1}
+.price small{font-size:17px;color:var(--m);font-weight:600;letter-spacing:0}
+.plan ul{list-style:none;display:flex;flex-direction:column;gap:11px;margin:24px 0 30px;flex:1}
+.plan li{display:flex;gap:10px;font-size:15px;color:#c8d3e8}
+.plan li svg{width:19px;height:19px;flex:none;color:var(--ok);margin-top:2px}
+.plan li.no{color:#5d6a85}.plan li.no svg{color:#3b4762}
+.pay-box{margin-top:14px}
+.note{color:var(--m);font-size:13px;margin-top:12px;text-align:center}
+
+/* faq */
+.faq{max-width:820px;margin:50px auto 0;display:flex;flex-direction:column;gap:10px}
+.q{border-radius:16px;background:var(--card);border:1px solid var(--line);overflow:hidden}
+.q button{width:100%;text-align:start;padding:20px 22px;font-weight:700;font-size:16px;display:flex;justify-content:space-between;gap:20px}
+.q button i{transition:.3s;font-style:normal;color:var(--a2);font-size:22px;line-height:1}
+.q.open button i{transform:rotate(45deg)}
+.q div{max-height:0;overflow:hidden;transition:max-height .35s ease;color:#9aa7c2;padding:0 22px}
+.q.open div{max-height:260px;padding-bottom:20px}
+
+/* final cta */
+.final{border-radius:32px;padding:80px 40px;text-align:center;position:relative;overflow:hidden;border:1px solid #2a4f8f;
+  background:radial-gradient(800px 400px at 50% 0%,#1e8fff40,transparent),linear-gradient(180deg,#0c1730,#080d18)}
+.final img{width:110px;margin-bottom:10px;filter:drop-shadow(0 0 40px #1e8fffaa)}
+footer{padding:50px 0 60px;border-top:1px solid var(--line);color:var(--m);font-size:14px}
+.foot{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap;align-items:center}
+.foot a:hover{color:#fff}
+
+/* modals */
+.modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:20px;background:#02040acc;backdrop-filter:blur(8px)}
+.modal.show{display:flex;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}}
+.box{width:min(460px,100%);max-height:calc(100vh - 40px);overflow:auto;border-radius:24px;padding:32px;background:linear-gradient(180deg,#0f1729,#0a101d);border:1px solid var(--line2);position:relative;animation:pop .25s cubic-bezier(.2,.9,.3,1.2)}
+.box.wide{width:min(620px,100%)}
+@keyframes pop{from{transform:scale(.94);opacity:0}}
+.x{position:absolute;top:14px;inset-inline-end:14px;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--m)}
+.x:hover{background:#ffffff0d;color:#fff}
+.box h3{font-size:24px;font-weight:900;margin-bottom:4px}
+.box .muted{color:var(--m);font-size:14px}
+.field{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+.field label{font-size:13px;color:#a6b2ca;font-weight:600}
+.field input{padding:13px 14px;border-radius:12px;background:#0a1020;border:1px solid var(--line2);color:#fff;outline:none;transition:.2s}
+.field input:focus{border-color:var(--a);box-shadow:0 0 0 4px #1e8fff22}
+.or{display:flex;align-items:center;gap:12px;color:var(--m);font-size:12px;margin:18px 0}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.err{color:var(--bad);font-size:13.5px;margin-top:10px;min-height:18px}
+.okmsg{color:var(--ok)}
+.switch{margin-top:16px;font-size:14px;color:var(--m);text-align:center}
+.switch a{color:var(--a2);font-weight:700;cursor:pointer}
+.w100{width:100%}
+.acc-card{border-radius:18px;padding:20px;background:#0a1222;border:1px solid var(--line);margin-top:14px}
+.acc-row{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.keybox{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;background:#060a13;border:1px dashed #2a4f8f;font-family:"JetBrains Mono",monospace;font-size:16px;letter-spacing:.06em;margin-top:10px;direction:ltr}
+.keybox span{flex:1}
+.status{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:13px;padding:5px 11px;border-radius:99px}
+.status.pro{background:#ffc53d1f;color:var(--pro);border:1px solid #ffc53d55}
+.status.free{background:#ffffff0a;color:#b0bbd1;border:1px solid var(--line2)}
+.status.end{background:#ff54701a;color:#ff8da1;border:1px solid #ff547055}
+.linkcode{font-family:"JetBrains Mono",monospace;font-size:30px;font-weight:700;letter-spacing:.18em;text-align:center;padding:16px;border-radius:14px;background:#060a13;border:1px solid #1f4f99;color:var(--a2);margin:16px 0;direction:ltr}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(30px);opacity:0;z-index:200;padding:13px 20px;border-radius:12px;background:#0f1830;border:1px solid var(--line2);font-weight:700;transition:.3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.toast.ok{border-color:var(--ok)}.toast.bad{border-color:var(--bad)}
+.spin{width:18px;height:18px;border-radius:50%;border:2px solid #ffffff44;border-top-color:#fff;animation:sp 0.8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(30px);transition:opacity .8s cubic-bezier(.2,.8,.2,1),transform .8s cubic-bezier(.2,.8,.2,1)}
+.rv.in{opacity:1;transform:none}
+.d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}
+
+@media (max-width:960px){
+  .nav-links{display:none}
+  .hero-grid,.safety{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr}
+  .bento{grid-template-columns:1fr}.c2,.c3,.c4{grid-column:auto}
+  .steps,.tw-list,.plans{grid-template-columns:1fr}
+  .screen,html[dir=rtl] .screen{transform:none}
+  .f2{left:0}
+}
+@media (max-width:560px){
+  nav{gap:10px;padding:8px 8px 8px 12px}
+  .brand-t{display:none}
+  .nav-dl span{display:none}.nav-dl{padding:10px 12px}
+  #navAuth .btn{padding:9px 12px}
+  h1{font-size:42px}
+  section{padding:84px 0}
+  .final{padding:60px 22px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div class="noise"></div>
+<div class="glowball" id="glow"></div>
+
+<!-- ICON SPRITES -->
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l5 5L19.5 7"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-dl" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></symbol>
+  <symbol id="i-crown" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M3 8l4.5 4.5L12 5l4.5 7.5L21 8l-2 10H5z"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M13.5 2.5L5 13.5h6.5l-1 8 8.5-11h-6.5z"/></symbol>
+  <symbol id="i-game" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2.5" y="7" width="19" height="11" rx="5.5"/><path d="M6.5 12.5h4M8.5 10.5v4"/><circle cx="15.9" cy="11.1" r=".6"/><circle cx="17.9" cy="13.7" r=".6"/></g></symbol>
+  <symbol id="i-wifi" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2.5 9c5.5-5.5 13.5-5.5 19 0M5.5 12.5c4-4 9-4 13 0M8.7 15.8c2-2 4.6-2 6.6 0"/><circle cx="12" cy="19.2" r="1"/></g></symbol>
+  <symbol id="i-ai" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 3l1.8 5.7 5.7 1.8-5.7 1.8L12 18l-1.8-5.7-5.7-1.8 5.7-1.8zM18.5 16v5M16 18.5h5"/></symbol>
+  <symbol id="i-broom" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 3l-7 7M9 9l6 6-4 6-8-8zM6.5 16.5L9 14"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 2.5l8 3v5.5c0 5-3.5 8.5-8 10.5-4.5-2-8-5.5-8-10.5V5.5zM8.5 12l2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 13h4l2.5-7L14 19l2.5-8H21"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 5v5h5M4.6 10C6.5 5 12 3 16.5 5.5s5 9.5 1 13S7 20.5 5 16"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 00-1-1H5a1 1 0 00-1 1v10a1 1 0 001 1h3"/></g></symbol>
+  <symbol id="i-google" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.6 3.9-5.5 3.9-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.3 14.6 2.3 12 2.3 6.6 2.3 2.3 6.6 2.3 12s4.3 9.7 9.7 9.7c5.6 0 9.3-3.9 9.3-9.5 0-.6-.1-1.1-.2-1.6H12z"/></symbol>
+</svg>
+
+<!-- NAV -->
+<nav id="nav">
+  <a class="brand" href="#top"><img src="/img/logo.svg" alt=""><span class="brand-t">EMPIRE TWEAKS</span></a>
+  <div class="nav-links">
+    <a href="#features" data-t="navFeatures">Features</a>
+    <a href="#tweaks" data-t="navTweaks">Tweaks</a>
+    <a href="#safety" data-t="navSafety">Safety</a>
+    <a href="#pricing" data-t="navPricing">Pricing</a>
+    <a href="#faq" data-t="navFaq">FAQ</a>
+  </div>
+  <div class="nav-r">
+    <div class="lang"><button data-lang="en">EN</button><button data-lang="he">עב</button></div>
+    <div id="navAuth"><button class="btn btn-g" onclick="openAuth()" data-t="signIn">Sign in</button></div>
+    <a class="btn btn-p nav-dl" href="#download"><svg><use href="#i-dl"/></svg><span data-t="download">Download</span></a>
+  </div>
+</nav>
+
+<main id="top">
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="pill rv"><b>v3.0</b><span data-t="heroPill">AI Assistant + 22 reversible tweaks</span></div>
+      <h1 class="rv d1"><span data-t="heroH1a">Unlock every</span><br><span class="grad" data-t="heroH1b">frame your PC has.</span></h1>
+      <p class="lead rv d2" data-t="heroLead">Empire Tweaks removes what Windows wastes in the background – recording, throttling, tracking, junk – so your games get the CPU, GPU and network first. One click. Fully reversible.</p>
+      <div class="cta rv d3">
+        <a class="btn btn-p btn-lg" href="#download"><svg><use href="#i-dl"/></svg><span data-t="ctaFree">Download free</span></a>
+        <a class="btn btn-g btn-lg" href="#pricing"><svg style="color:var(--pro)"><use href="#i-crown"/></svg><span data-t="ctaPro">Get PRO</span></a>
+      </div>
+      <div class="trust rv d3">
+        <span><svg><use href="#i-check"/></svg><span data-t="trust1">Windows 10 & 11</span></span>
+        <span><svg><use href="#i-check"/></svg><span data-t="trust2">Every change can be undone</span></span>
+        <span><svg><use href="#i-check"/></svg><span data-t="trust3">No ads, no bloat</span></span>
+      </div>
+    </div>
+    <div class="stage rv d2" id="stage">
+      <div class="screen" id="screen"><img src="/img/app-home.png" alt="Empire Tweaks app"></div>
+      <div class="float f1"><i></i><span data-t="float1">Game DVR off</span></div>
+      <div class="float f2"><svg width="16" height="16" style="color:var(--a2)"><use href="#i-wifi"/></svg><span data-t="float2">Network throttling off</span></div>
+      <div class="float f3"><svg width="16" height="16" style="color:var(--pro)"><use href="#i-undo"/></svg><span data-t="float3">Backup saved</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="marquee"><div class="track" id="track"></div></div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="wrap">
+    <div class="center">
+      <div class="eyebrow rv" data-t="featEyebrow">Everything in one app</div>
+      <h2 class="rv d1" data-t="featH2">Built for gamers. Safe for everyone.</h2>
+      <p class="sub rv d2" data-t="featSub">No placebo "RAM boosters". Every feature changes something real in Windows, shows you what it does, and can be turned back.</p>
+    </div>
+    <div class="stats">
+      <div class="stat rv"><b data-count="22">22</b><span data-t="st1">real Windows tweaks</span></div>
+      <div class="stat rv d1"><b>1</b><span data-t="st2">click to optimize everything</span></div>
+      <div class="stat rv d2"><b data-count="100" data-suffix="%">100%</b><span data-t="st3">reversible – nothing is permanent</span></div>
+      <div class="stat rv d3"><b>0</b><span data-t="st4">ads, trackers or bundled apps</span></div>
+    </div>
+    <div class="bento">
+      <div class="cell c4 rv">
+        <div class="ic"><svg><use href="#i-game"/></svg></div>
+        <h3 data-t="b1h">Game Boost</h3>
+        <p data-t="b1p">Game Mode, GPU & CPU priority for games, hardware GPU scheduling, Ultimate Performance power plan, raw mouse input and more.</p>
+        <div class="bars" aria-hidden="true"><i></i><i style="animation-delay:-.3s"></i><i style="animation-delay:-.6s"></i><i style="animation-delay:-.9s"></i><i style="animation-delay:-1.2s"></i><i style="animation-delay:-1.5s"></i><i style="animation-delay:-1.8s"></i><i style="animation-delay:-2.1s"></i><i style="animation-delay:-.45s"></i><i style="animation-delay:-.75s"></i><i style="animation-delay:-1.05s"></i><i style="animation-delay:-1.35s"></i></div>
+      </div>
+      <div class="cell c2 rv d1">
+        <div class="ic"><svg><use href="#i-wifi"/></svg></div>
+        <h3 data-t="b2h">Lower ping</h3>
+        <p data-t="b2p">Network tweaks, a real latency test to game servers and a one-click DNS switch.</p>
+        <div class="ping"><div><small>Cloudflare</small><b class="mono">8 ms</b></div><div><small>Steam</small><b class="mono">21 ms</b></div></div>
+      </div>
+      <div class="cell c3 rv">
+        <div class="ic"><svg><use href="#i-ai"/></svg></div>
+        <h3 data-t="b3h">AI Assistant</h3>
+        <p data-t="b3p">Describe the problem in Hebrew or English. It reads your live PC stats and applies the right fixes.</p>
+        <div class="chat">
+          <div class="msg u" data-t="chatU">My FPS drops in Fortnite</div>
+          <div class="msg b" data-t="chatB">Your RAM is at 86%. These usually give the biggest FPS gain:</div>
+          <div class="chips"><span>Game Mode</span><span>GPU Priority</span><span>Disable Game DVR</span></div>
+        </div>
+      </div>
+      <div class="cell c3 rv d1">
+        <div class="ic"><svg><use href="#i-undo"/></svg></div>
+        <h3 data-t="b4h">One switch per tweak</h3>
+        <p data-t="b4p">See exactly what is on. Turn anything off and Windows goes back to how it was.</p>
+        <div class="toggle-demo" id="toggleDemo">
+          <div class="tg"><span>Disable Xbox Game DVR</span><i class="sw on"></i></div>
+          <div class="tg"><span>GPU & CPU Priority for Games</span><i class="sw on"></i></div>
+          <div class="tg"><span>Disable Network Throttling</span><i class="sw"></i></div>
+        </div>
+      </div>
+      <div class="cell c2 rv">
+        <div class="ic"><svg><use href="#i-broom"/></svg></div>
+        <h3 data-t="b5h">Junk cleaner</h3>
+        <p data-t="b5p">Temp files, crash dumps, caches. Files in use are never touched.</p>
+      </div>
+      <div class="cell c2 rv d1">
+        <div class="ic"><svg><use href="#i-chart"/></svg></div>
+        <h3 data-t="b6h">Live monitor</h3>
+        <p data-t="b6p">CPU, GPU, RAM, network and the apps eating them – updated every second.</p>
+      </div>
+      <div class="cell c2 rv d2">
+        <div class="ic"><svg><use href="#i-bolt"/></svg></div>
+        <h3 data-t="b7h">Faster boot</h3>
+        <p data-t="b7p">Turn off apps that start with Windows and remove the startup delay.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SHOWCASE -->
+<section style="padding-top:20px">
+  <div class="wrap center">
+    <div class="eyebrow rv" data-t="showEyebrow">Take a look</div>
+    <h2 class="rv d1" data-t="showH2">Clean. Fast. Honest.</h2>
+    <div class="tabs rv d2" id="showTabs">
+      <button class="on" data-img="app-home" data-t="tabHome">Home</button>
+      <button data-img="app-gaming" data-t="tabGaming">Gaming</button>
+      <button data-img="app-performance" data-t="tabPerf">Monitor</button>
+      <button data-img="app-ai" data-t="tabAi">AI</button>
+    </div>
+    <div class="showcase rv"><div class="bar"><i></i><i></i><i></i></div><img id="showImg" src="/img/app-home.png" alt=""></div>
+  </div>
+</section>
+
+<!-- STEPS -->
+<section>
+  <div class="wrap">
+    <div class="center">
+      <div class="eyebrow rv" data-t="stepsEyebrow">How it works</div>
+      <h2 class="rv d1" data-t="stepsH2">Faster in under two minutes.</h2>
+    </div>
+    <div class="steps">
+      <div class="step rv"><h3 data-t="s1h">Download & open</h3><p data-t="s1p">One small app. It asks for Administrator so it can change system settings.</p></div>
+      <div class="step rv d1"><h3 data-t="s2h">Click One-Click Optimize</h3><p data-t="s2p">It saves a backup of every value, then applies the safe, proven tweaks.</p></div>
+      <div class="step rv d2"><h3 data-t="s3h">Restart & play</h3><p data-t="s3p">Don't like a change? Flip its switch back – or undo everything at once.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- TWEAKS -->
+<section id="tweaks">
+  <div class="wrap">
+    <div class="eyebrow rv" data-t="twEyebrow">The full list</div>
+    <h2 class="rv d1" data-t="twH2">Every tweak, explained.</h2>
+    <p class="sub rv d2" data-t="twSub">We left out the "tweaks" that hurt more than they help – like disabling SysMain or Windows Defender.</p>
+    <div class="tw-tabs" id="twTabs"></div>
+    <div class="tw-list" id="twList"></div>
+  </div>
+</section>
+
+<!-- SAFETY -->
+<section id="safety">
+  <div class="wrap safety">
+    <div class="term rv">
+      <div><span class="d">$</span> <span class="b">empire</span> apply game_dvr</div>
+      <div class="d">  reading HKCU\System\GameConfigStore …</div>
+      <div><span class="y">  backup</span> GameDVR_Enabled = 1  <span class="d">→ state.json</span></div>
+      <div><span class="g">  set   </span> GameDVR_Enabled = 0</div>
+      <div class="g">  ✓ Disable Xbox Game DVR applied</div>
+      <br>
+      <div><span class="d">$</span> <span class="b">empire</span> revert game_dvr</div>
+      <div><span class="y">  restore</span> GameDVR_Enabled = 1</div>
+      <div class="g">  ✓ back to the original Windows value</div>
+    </div>
+    <div>
+      <div class="eyebrow rv" data-t="safeEyebrow">Safety first</div>
+      <h2 class="rv d1" data-t="safeH2">Nothing you can't undo.</h2>
+      <p class="sub rv d2" data-t="safeSub">Most tweak tools change your registry and forget what was there. Empire Tweaks saves the original value first – every time.</p>
+      <div class="ticks">
+        <div class="tick rv"><svg><use href="#i-shield"/></svg><div><b data-t="t1b">Automatic backup</b><span data-t="t1s">Original values are stored before any change.</span></div></div>
+        <div class="tick rv d1"><svg><use href="#i-undo"/></svg><div><b data-t="t2b">Revert all – always free</b><span data-t="t2s">Even after the free hour, undoing is never locked.</span></div></div>
+        <div class="tick rv d2"><svg><use href="#i-check"/></svg><div><b data-t="t3b">Restore point button</b><span data-t="t3s">Create a Windows restore point in one click before you start.</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="wrap">
+    <div class="center">
+      <div class="eyebrow rv" data-t="prEyebrow">Pricing</div>
+      <h2 class="rv d1" data-t="prH2">Start free. Go PRO when you're ready.</h2>
+      <p class="sub rv d2" data-t="prSub">Cancel anytime from your account – PRO stays on until the end of the month you paid for.</p>
+    </div>
+    <div class="plans">
+      <div class="plan rv">
+        <h3>FREE</h3>
+        <div class="price">$0</div>
+        <span class="muted" style="color:var(--m)" data-t="freeTag">Try it on your PC</span>
+        <ul>
+          <li><svg><use href="#i-check"/></svg><span data-t="f1">10 essential tweaks</span></li>
+          <li><svg><use href="#i-check"/></svg><span data-t="f2">Junk cleaner & startup manager</span></li>
+          <li><svg><use href="#i-check"/></svg><span data-t="f3">Live performance monitor & ping test</span></li>
+          <li><svg><use href="#i-check"/></svg><span data-t="f4">1 hour of use</span></li>
+          <li class="no"><svg><use href="#i-x"/></svg><span data-t="f5">AI Assistant</span></li>
+          <li class="no"><svg><use href="#i-x"/></svg><span data-t="f6">GPU, network & privacy tweaks</span></li>
+        </ul>
+        <a class="btn btn-g btn-lg w100" href="#download"><svg><use href="#i-dl"/></svg><span data-t="download">Download</span></a>
+      </div>
+      <div class="plan pro rv d1">
+        <div class="badge" data-t="best">BEST VALUE</div>
+        <h3 style="color:var(--pro)">PRO</h3>
+        <div class="price"><span id="price">$7</span> <small id="period" data-t="perMonth">/ month</small></div>
+        <span style="color:#9fb9e0" data-t="proTag">Everything, unlimited</span>
+        <ul>
+          <li><svg><use href="#i-check"/></svg><span data-t="p1">All 22 tweaks – GPU, network, privacy</span></li>
+          <li><svg><use href="#i-check"/></svg><span data-t="p2">AI Assistant that fixes problems for you</span></li>
+          <li><svg><use href="#i-check"/></svg><span data-t="p3">One-Click Optimize with every tweak</span></li>
+          <li><svg><use href="#i-check"/></svg><span data-t="p4">Unlimited use on your PC</span></li>
+          <li><svg><use href="#i-check"/></svg><span data-t="p5">All future updates</span></li>
+          <li><svg><use href="#i-check"/></svg><span data-t="p6">Cancel anytime in one click</span></li>
+        </ul>
+        <div id="buyArea">
+          <button class="btn btn-pro btn-lg w100" id="buyBtn"><svg><use href="#i-crown"/></svg><span data-t="getPro">Get PRO</span></button>
+        </div>
+        <div class="pay-box" id="paypal-buttons"></div>
+        <div class="note" data-t="payNote">Secure payment with PayPal or card. Unlocks instantly in the app.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="wrap">
+    <div class="center">
+      <div class="eyebrow rv" data-t="faqEyebrow">FAQ</div>
+      <h2 class="rv d1" data-t="faqH2">Questions? Answers.</h2>
+    </div>
+    <div class="faq" id="faqList"></div>
+  </div>
+</section>
+
+<!-- DOWNLOAD -->
+<section id="download" style="padding-top:40px">
+  <div class="wrap">
+    <div class="final rv">
+      <img src="/img/logo.svg" alt="">
+      <h2 data-t="dlH2">Ready to feel the difference?</h2>
+      <p class="sub" style="margin:0 auto 30px" data-t="dlSub">Free download for Windows 10 and 11. Sign in from the app to unlock PRO.</p>
+      <div class="cta" style="justify-content:center">
+        <a class="btn btn-p btn-lg" id="dlBtn" href="#"><svg><use href="#i-dl"/></svg><span data-t="dlBtn">Download for Windows</span></a>
+        <a class="btn btn-g btn-lg" href="#pricing" data-t="ctaPro">Get PRO</a>
+      </div>
+      <p class="note"><span data-t="dlNote">Version</span> <span id="ver">3.0.0</span> · Windows 10/11 · 64-bit</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <a class="brand" href="#top"><img src="/img/logo.svg" alt="" style="width:32px">EMPIRE TWEAKS</a>
+    <div style="display:flex;gap:22px;flex-wrap:wrap">
+      <a href="#features" data-t="navFeatures">Features</a><a href="#pricing" data-t="navPricing">Pricing</a>
+      <a href="#faq" data-t="navFaq">FAQ</a><a href="#" onclick="openAccount();return false" data-t="account">Account</a>
+    </div>
+    <div>© <span id="yr"></span> Empire Tweaks</div>
+  </div>
+</footer>
+
+<!-- AUTH MODAL -->
+<div class="modal" id="authModal">
+  <div class="box">
+    <button class="x" onclick="closeModal('authModal')"><svg width="18" height="18"><use href="#i-x"/></svg></button>
+    <h3 id="authTitle" data-t="signIn">Sign in</h3>
+    <p class="muted" id="authSub" data-t="authSub">Use the same account in the app and on the website.</p>
+    <button class="btn btn-g w100" style="margin-top:20px" onclick="googleSignIn()"><svg><use href="#i-google"/></svg><span data-t="google">Continue with Google</span></button>
+    <div class="or" data-t="or">or</div>
+    <form id="authForm" onsubmit="return submitAuth(event)">
+      <div class="field" id="nameField" style="display:none"><label data-t="name">Name</label><input id="aName" autocomplete="name"></div>
+      <div class="field"><label data-t="email">Email</label><input id="aEmail" type="email" required autocomplete="email"></div>
+      <div class="field" id="passField"><label data-t="password">Password</label><input id="aPass" type="password" minlength="6" autocomplete="current-password"></div>
+      <div class="err" id="authErr"></div>
+      <button class="btn btn-p btn-lg w100" id="authBtn" type="submit" data-t="signIn">Sign in</button>
+    </form>
+    <div class="switch" id="authSwitch"></div>
+    <div class="switch"><a onclick="setAuthMode('reset')" data-t="forgot">Forgot password?</a></div>
+  </div>
+</div>
+
+<!-- ACCOUNT MODAL -->
+<div class="modal" id="accModal">
+  <div class="box wide">
+    <button class="x" onclick="closeModal('accModal')"><svg width="18" height="18"><use href="#i-x"/></svg></button>
+    <div class="acc-row" style="justify-content:flex-start">
+      <div class="avatar" id="accAvatar" style="width:52px;height:52px;font-size:20px">?</div>
+      <div><h3 id="accName">Account</h3><div class="muted" id="accEmail"></div></div>
+    </div>
+
+    <div class="acc-card" id="linkCard" style="display:none;border-color:#1f4f99">
+      <b data-t="linkTitle">Connect the Empire Tweaks app</b>
+      <p class="muted" data-t="linkSub">Make sure this code matches the one shown in the app:</p>
+      <div class="linkcode" id="linkCode">----</div>
+      <button class="btn btn-p w100" id="linkBtn" onclick="confirmLink()" data-t="linkBtn">Connect this PC</button>
+      <div class="err" id="linkErr"></div>
+    </div>
+
+    <div class="acc-card">
+      <div class="acc-row">
+        <div><div class="muted" data-t="plan">Plan</div><span class="status free" id="accStatus">FREE</span></div>
+        <div style="text-align:end"><div class="muted" id="accDateLbl"></div><b id="accDate"></b></div>
+      </div>
+      <div id="accKeyWrap" style="display:none">
+        <div class="muted" style="margin-top:16px" data-t="yourKey">Your license key (for the app):</div>
+        <div class="keybox"><span id="accKey"></span><button class="btn btn-g" style="padding:7px 10px" onclick="copyKey()"><svg width="16" height="16"><use href="#i-copy"/></svg></button></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
+        <a class="btn btn-p" href="#download" onclick="closeModal('accModal')"><svg><use href="#i-dl"/></svg><span data-t="download">Download</span></a>
+        <button class="btn btn-pro" id="accBuy" onclick="closeModal('accModal');goBuy()"><svg><use href="#i-crown"/></svg><span data-t="getPro">Get PRO</span></button>
+        <button class="btn btn-g" id="accCancel" style="display:none;color:#ff8da1" onclick="cancelSub()" data-t="cancelSub">Cancel subscription</button>
+      </div>
+      <div class="err" id="accErr"></div>
+    </div>
+
+    <details class="acc-card" id="restoreBox">
+      <summary style="cursor:pointer;font-weight:700" data-t="restoreTitle">Already paid but PRO is not active?</summary>
+      <p class="muted" style="margin-top:8px" data-t="restoreSub">Paste your PayPal subscription ID (starts with I-, you'll find it in the PayPal receipt email).</p>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <div class="field" style="flex:1;margin:0"><input id="restoreId" placeholder="I-XXXXXXXXXXXX" style="direction:ltr"></div>
+        <button class="btn btn-g" onclick="restoreSub()" data-t="restoreBtn">Restore</button>
+      </div>
+      <div class="err" id="restoreErr"></div>
+    </details>
+
+    <button class="btn btn-g" style="margin-top:16px" onclick="signOutNow()" data-t="signOut">Sign out</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═════════════════════ i18n ═════════════════════ */
+const T = {
+en:{navFeatures:"Features",navTweaks:"Tweaks",navSafety:"Safety",navPricing:"Pricing",navFaq:"FAQ",signIn:"Sign in",download:"Download",
+heroPill:"AI Assistant + 22 reversible tweaks",heroH1a:"Unlock every",heroH1b:"frame your PC has.",
+heroLead:"Empire Tweaks removes what Windows wastes in the background – recording, throttling, tracking, junk – so your games get the CPU, GPU and network first. One click. Fully reversible.",
+ctaFree:"Download free",ctaPro:"Get PRO",trust1:"Windows 10 & 11",trust2:"Every change can be undone",trust3:"No ads, no bloat",
+float1:"Game DVR off",float2:"Network throttling off",float3:"Backup saved",
+featEyebrow:"Everything in one app",featH2:"Built for gamers. Safe for everyone.",featSub:"No placebo \"RAM boosters\". Every feature changes something real in Windows, shows you what it does, and can be turned back.",
+st1:"real Windows tweaks",st2:"click to optimize everything",st3:"reversible – nothing is permanent",st4:"ads, trackers or bundled apps",
+b1h:"Game Boost",b1p:"Game Mode, GPU & CPU priority for games, hardware GPU scheduling, Ultimate Performance power plan, raw mouse input and more.",
+b2h:"Lower ping",b2p:"Network tweaks, a real latency test to game servers and a one-click DNS switch.",
+b3h:"AI Assistant",b3p:"Describe the problem in Hebrew or English. It reads your live PC stats and applies the right fixes.",
+chatU:"My FPS drops in Fortnite",chatB:"Your RAM is at 86%. These usually give the biggest FPS gain:",
+b4h:"One switch per tweak",b4p:"See exactly what is on. Turn anything off and Windows goes back to how it was.",
+b5h:"Junk cleaner",b5p:"Temp files, crash dumps, caches. Files in use are never touched.",
+b6h:"Live monitor",b6p:"CPU, GPU, RAM, network and the apps eating them – updated every second.",
+b7h:"Faster boot",b7p:"Turn off apps that start with Windows and remove the startup delay.",
+showEyebrow:"Take a look",showH2:"Clean. Fast. Honest.",tabHome:"Home",tabGaming:"Gaming",tabPerf:"Monitor",tabAi:"AI",
+stepsEyebrow:"How it works",stepsH2:"Faster in under two minutes.",
+s1h:"Download & open",s1p:"One small app. It asks for Administrator so it can change system settings.",
+s2h:"Click One-Click Optimize",s2p:"It saves a backup of every value, then applies the safe, proven tweaks.",
+s3h:"Restart & play",s3p:"Don't like a change? Flip its switch back – or undo everything at once.",
+twEyebrow:"The full list",twH2:"Every tweak, explained.",twSub:"We left out the \"tweaks\" that hurt more than they help – like disabling SysMain or Windows Defender.",
+safeEyebrow:"Safety first",safeH2:"Nothing you can't undo.",safeSub:"Most tweak tools change your registry and forget what was there. Empire Tweaks saves the original value first – every time.",
+t1b:"Automatic backup",t1s:"Original values are stored before any change.",t2b:"Revert all – always free",t2s:"Even after the free hour, undoing is never locked.",
+t3b:"Restore point button",t3s:"Create a Windows restore point in one click before you start.",
+prEyebrow:"Pricing",prH2:"Start free. Go PRO when you're ready.",prSub:"Cancel anytime from your account – PRO stays on until the end of the month you paid for.",
+freeTag:"Try it on your PC",f1:"10 essential tweaks",f2:"Junk cleaner & startup manager",f3:"Live performance monitor & ping test",f4:"1 hour of use",f5:"AI Assistant",f6:"GPU, network & privacy tweaks",
+best:"BEST VALUE",perMonth:"/ month",proTag:"Everything, unlimited",p1:"All 22 tweaks – GPU, network, privacy",p2:"AI Assistant that fixes problems for you",p3:"One-Click Optimize with every tweak",p4:"Unlimited use on your PC",p5:"All future updates",p6:"Cancel anytime in one click",
+getPro:"Get PRO",payNote:"Secure payment with PayPal or card. Unlocks instantly in the app.",
+signInToBuy:"Sign in to get PRO",youArePro:"You're PRO – thank you!",
+faqEyebrow:"FAQ",faqH2:"Questions? Answers.",
+dlH2:"Ready to feel the difference?",dlSub:"Free download for Windows 10 and 11. Sign in from the app to unlock PRO.",dlBtn:"Download for Windows",dlNote:"Version",
+account:"Account",authSub:"Use the same account in the app and on the website.",google:"Continue with Google",or:"or",name:"Name",email:"Email",password:"Password",
+forgot:"Forgot password?",createAcc:"Create account",noAcc:"No account?",haveAcc:"Already have an account?",resetTitle:"Reset password",resetBtn:"Send reset link",backToSignIn:"Back to sign in",
+resetSent:"Check your inbox for the reset link.",
+linkTitle:"Connect the Empire Tweaks app",linkSub:"Make sure this code matches the one shown in the app:",linkBtn:"Connect this PC",linkDone:"Done! Go back to the app – it's signed in.",
+plan:"Plan",yourKey:"Your license key (for the app):",cancelSub:"Cancel subscription",renews:"Renews on",ends:"PRO until",
+restoreTitle:"Already paid but PRO is not active?",restoreSub:"Paste your PayPal subscription ID (starts with I-, you'll find it in the PayPal receipt email).",restoreBtn:"Restore",
+signOut:"Sign out",copied:"Copied",cancelConfirm:"Cancel your PRO subscription? You keep PRO until the paid month ends.",
+cancelled:"Subscription cancelled.",activated:"PRO activated! Open the app and sign in.",
+faq:[
+["Is it safe?","Yes. Every tweak stores the original Windows value before changing it, and each one has its own switch to turn it back. There is also a 'Revert ALL' button and a restore point button. We deliberately left out risky tweaks like disabling SysMain, Defender or Windows Update."],
+["How much FPS will I gain?","It depends on your PC. Machines with background recording, power saving or lots of startup apps gain the most; a clean, high-end PC gains less. We don't promise fake numbers – try FREE first and see for yourself."],
+["What's the difference between FREE and PRO?","FREE has 10 essential tweaks, the cleaner, the startup manager and the monitor, for one hour of use. PRO unlocks all 22 tweaks, the AI Assistant and unlimited use."],
+["How do I unlock PRO in the app?","Buy PRO here, then in the app go to Settings & Account and click 'Sign in with your Empire Tweaks account'. Confirm the code on the website and PRO unlocks instantly. You can also paste your license key."],
+["How do I cancel?","Sign in here, open Account and click 'Cancel subscription'. PRO stays active until the end of the month you already paid for."],
+["Why does Windows warn me when I open it?","New apps without an expensive code-signing certificate can show a SmartScreen warning. Click 'More info' then 'Run anyway'."]
+]},
+he:{navFeatures:"פיצ'רים",navTweaks:"טוויקים",navSafety:"בטיחות",navPricing:"מחירים",navFaq:"שאלות",signIn:"התחברות",download:"הורדה",
+heroPill:"עוזר AI + 22 טוויקים הפיכים",heroH1a:"תוציא כל פריים",heroH1b:"שיש למחשב שלך.",
+heroLead:"Empire Tweaks מוריד את מה ש-Windows מבזבז ברקע – הקלטות, האטות, מעקב וזבל – כדי שהמשחקים יקבלו את המעבד, כרטיס המסך והרשת קודם. קליק אחד. הכל הפיך.",
+ctaFree:"הורדה בחינם",ctaPro:"שדרוג ל-PRO",trust1:"Windows 10 ו-11",trust2:"כל שינוי אפשר לבטל",trust3:"בלי פרסומות ובלי זבל",
+float1:"Game DVR כבוי",float2:"האטת רשת כבויה",float3:"גיבוי נשמר",
+featEyebrow:"הכל באפליקציה אחת",featH2:"בנוי לגיימרים. בטוח לכולם.",featSub:"בלי \"מאיצי RAM\" מזויפים. כל פיצ'ר משנה משהו אמיתי ב-Windows, מסביר מה הוא עושה, ואפשר להחזיר אותו.",
+st1:"טוויקים אמיתיים ל-Windows",st2:"קליק לאופטימיזציה מלאה",st3:"הפיך – שום דבר לא קבוע",st4:"פרסומות, מעקב או תוכנות נלוות",
+b1h:"Game Boost",b1p:"Game Mode, עדיפות מעבד וכרטיס מסך למשחקים, HAGS, תוכנית חשמל Ultimate Performance, עכבר ללא האצה ועוד.",
+b2h:"פינג נמוך",b2p:"טוויקים לרשת, בדיקת פינג אמיתית לשרתי משחקים והחלפת DNS בקליק.",
+b3h:"עוזר AI",b3p:"תתאר את הבעיה בעברית או באנגלית. הוא קורא את נתוני המחשב בזמן אמת ומפעיל את התיקונים הנכונים.",
+chatU:"ה-FPS שלי יורד בפורטנייט",chatB:"ה-RAM שלך על 86%. אלה בדרך כלל נותנים הכי הרבה FPS:",
+b4h:"מתג לכל טוויק",b4p:"רואים בדיוק מה פועל. מכבים – ו-Windows חוזר בדיוק למה שהיה.",
+b5h:"ניקוי זבל",b5p:"קבצים זמניים, קבצי קריסה ומטמון. קבצים בשימוש לא נוגעים בהם.",
+b6h:"ניטור חי",b6p:"מעבד, כרטיס מסך, RAM, רשת והתוכנות שאוכלות אותם – כל שנייה.",
+b7h:"הדלקה מהירה",b7p:"מכבים תוכנות שעולות עם Windows ומורידים את השהיית ההפעלה.",
+showEyebrow:"הצצה",showH2:"נקי. מהיר. אמיתי.",tabHome:"בית",tabGaming:"גיימינג",tabPerf:"ניטור",tabAi:"AI",
+stepsEyebrow:"איך זה עובד",stepsH2:"מחשב מהיר בפחות משתי דקות.",
+s1h:"מורידים ופותחים",s1p:"אפליקציה קטנה אחת. היא מבקשת הרשאות מנהל כדי לשנות הגדרות מערכת.",
+s2h:"לוחצים One-Click Optimize",s2p:"היא שומרת גיבוי של כל ערך ואז מפעילה את הטוויקים הבטוחים.",
+s3h:"ריסטרט ומשחקים",s3p:"לא אהבת שינוי? מכבים את המתג שלו – או מבטלים הכל בבת אחת.",
+twEyebrow:"הרשימה המלאה",twH2:"כל טוויק, עם הסבר.",twSub:"השארנו בחוץ \"טוויקים\" שעושים יותר נזק מתועלת – כמו כיבוי SysMain או Windows Defender.",
+safeEyebrow:"בטיחות קודם",safeH2:"אין שום דבר שאי אפשר לבטל.",safeSub:"רוב תוכנות הטוויקים משנות את הרג'יסטרי ושוכחות מה היה שם. Empire Tweaks שומר קודם את הערך המקורי – כל פעם.",
+t1b:"גיבוי אוטומטי",t1s:"הערכים המקוריים נשמרים לפני כל שינוי.",t2b:"ביטול הכל – תמיד בחינם",t2s:"גם אחרי השעה החינמית, ביטול אף פעם לא נעול.",
+t3b:"כפתור נקודת שחזור",t3s:"יוצרים נקודת שחזור של Windows בקליק לפני שמתחילים.",
+prEyebrow:"מחירים",prH2:"מתחילים בחינם. עוברים ל-PRO כשמוכנים.",prSub:"אפשר לבטל מתי שרוצים מהחשבון – ה-PRO נשאר עד סוף החודש ששילמת עליו.",
+freeTag:"לנסות על המחשב שלך",f1:"10 טוויקים בסיסיים",f2:"ניקוי זבל וניהול הפעלה",f3:"ניטור ביצועים ובדיקת פינג",f4:"שעה אחת של שימוש",f5:"עוזר AI",f6:"טוויקים לכרטיס מסך, רשת ופרטיות",
+best:"הכי משתלם",perMonth:"/ לחודש",proTag:"הכל, בלי הגבלה",p1:"כל 22 הטוויקים – GPU, רשת, פרטיות",p2:"עוזר AI שמתקן בעיות בשבילך",p3:"One-Click Optimize עם כל הטוויקים",p4:"שימוש בלי הגבלה",p5:"כל העדכונים העתידיים",p6:"ביטול בקליק, מתי שרוצים",
+getPro:"שדרוג ל-PRO",payNote:"תשלום מאובטח ב-PayPal או בכרטיס. נפתח מיד באפליקציה.",
+signInToBuy:"התחבר כדי לשדרג",youArePro:"אתה PRO – תודה!",
+faqEyebrow:"שאלות",faqH2:"שאלות ותשובות.",
+dlH2:"מוכן להרגיש את ההבדל?",dlSub:"הורדה חינמית ל-Windows 10 ו-11. מתחברים מהאפליקציה כדי לפתוח PRO.",dlBtn:"הורדה ל-Windows",dlNote:"גרסה",
+account:"חשבון",authSub:"אותו חשבון באפליקציה ובאתר.",google:"המשך עם Google",or:"או",name:"שם",email:"אימייל",password:"סיסמה",
+forgot:"שכחת סיסמה?",createAcc:"יצירת חשבון",noAcc:"אין לך חשבון?",haveAcc:"כבר יש לך חשבון?",resetTitle:"איפוס סיסמה",resetBtn:"שלח קישור לאיפוס",backToSignIn:"חזרה להתחברות",
+resetSent:"שלחנו לך קישור לאיפוס במייל.",
+linkTitle:"חיבור אפליקציית Empire Tweaks",linkSub:"ודא שהקוד הזה זהה לקוד שמופיע באפליקציה:",linkBtn:"חבר את המחשב הזה",linkDone:"מעולה! תחזור לאפליקציה – היא מחוברת.",
+plan:"מנוי",yourKey:"מפתח הרישיון שלך (לאפליקציה):",cancelSub:"ביטול מנוי",renews:"מתחדש ב-",ends:"PRO עד",
+restoreTitle:"שילמת אבל ה-PRO לא פעיל?",restoreSub:"הדבק את מספר המנוי מ-PayPal (מתחיל ב-I-, נמצא במייל הקבלה של PayPal).",restoreBtn:"שחזור",
+signOut:"התנתקות",copied:"הועתק",cancelConfirm:"לבטל את מנוי ה-PRO? ה-PRO יישאר עד סוף החודש ששולם.",
+cancelled:"המנוי בוטל.",activated:"PRO הופעל! פתח את האפליקציה והתחבר.",
+faq:[
+["זה בטוח?","כן. כל טוויק שומר את הערך המקורי של Windows לפני השינוי, ולכל אחד יש מתג להחזרה. יש גם כפתור 'ביטול הכל' וכפתור לנקודת שחזור. השארנו בחוץ בכוונה טוויקים מסוכנים כמו כיבוי SysMain, Defender או Windows Update."],
+["כמה FPS ארוויח?","זה תלוי במחשב. מחשבים עם הקלטה ברקע, חיסכון בחשמל או הרבה תוכנות בהפעלה מרוויחים הכי הרבה; מחשב נקי וחזק מרוויח פחות. אנחנו לא מבטיחים מספרים מומצאים – נסה את ה-FREE ותראה בעצמך."],
+["מה ההבדל בין FREE ל-PRO?","ב-FREE יש 10 טוויקים בסיסיים, ניקוי, ניהול הפעלה וניטור, לשעה של שימוש. PRO פותח את כל 22 הטוויקים, את עוזר ה-AI ושימוש בלי הגבלה."],
+["איך פותחים PRO באפליקציה?","קונים PRO כאן, ובאפליקציה נכנסים ל-Settings & Account ולוחצים 'Sign in with your Empire Tweaks account'. מאשרים את הקוד באתר וה-PRO נפתח מיד. אפשר גם להדביק את מפתח הרישיון."],
+["איך מבטלים?","מתחברים כאן, פותחים את החשבון ולוחצים 'ביטול מנוי'. ה-PRO נשאר פעיל עד סוף החודש ששילמת עליו."],
+["למה Windows מזהיר כשאני פותח את התוכנה?","אפליקציות חדשות בלי תעודת חתימה יקרה יכולות להציג אזהרת SmartScreen. לוחצים 'מידע נוסף' ואז 'הפעל בכל זאת'."]
+]}};
+
+const TWEAKS = [
+ ["gaming","free","Game Mode","Lets Windows prioritize the game you are playing.","Windows נותן עדיפות למשחק שאתה משחק."],
+ ["gaming","free","Disable Xbox Game DVR","Stops background recording that costs FPS.","עוצר הקלטה ברקע שגוזלת FPS."],
+ ["gaming","free","Disable Mouse Acceleration","Raw 1:1 mouse movement for consistent aim.","תנועת עכבר 1:1 לכיוון יציב."],
+ ["gaming","free","High Performance Power Plan","Keeps the CPU at full speed.","המעבד עובד במהירות מלאה כל הזמן."],
+ ["gaming","pro","Hardware-Accelerated GPU Scheduling","Lower latency on modern GPUs.","פחות השהיה בכרטיסי מסך חדשים."],
+ ["gaming","pro","GPU & CPU Priority for Games","Top scheduling priority for games.","עדיפות עליונה למשחקים במעבד ובכרטיס המסך."],
+ ["gaming","pro","System Responsiveness for Games","Less CPU reserved for background tasks.","פחות מעבד שמור למשימות רקע."],
+ ["gaming","pro","Ultimate Performance Power Plan","Microsoft's hidden max-performance plan.","תוכנית הביצועים המקסימלית הנסתרת של מיקרוסופט."],
+ ["gaming","pro","Disable Fullscreen Optimizations","True exclusive fullscreen for less input lag.","מסך מלא אמיתי לפחות השהיית קלט."],
+ ["network","free","Disable Network Throttling","Removes Windows' cap on network packets.","מסיר את ההגבלה של Windows על חבילות רשת."],
+ ["network","pro","Disable Nagle's Algorithm","Sends small game packets immediately.","שולח חבילות משחק קטנות מיד."],
+ ["system","free","Instant Menus","Removes the 400ms menu delay.","מוריד את השהיית התפריטים."],
+ ["system","free","Disable Transparency Effects","Less GPU work in the background.","פחות עבודה לכרטיס המסך ברקע."],
+ ["system","free","Remove Startup Delay","Startup apps launch right away.","תוכנות ההפעלה עולות מיד."],
+ ["system","free","Performance Visual Effects","Faster Windows animations.","אנימציות מהירות יותר."],
+ ["system","pro","Disable Background Apps","Stops Store apps running in the background.","עוצר אפליקציות חנות שרצות ברקע."],
+ ["privacy","free","Disable Advertising ID","Apps can't track you with an ad ID.","אפליקציות לא יכולות לעקוב אחריך עם מזהה פרסום."],
+ ["privacy","pro","Minimize Telemetry","Sends the minimum diagnostic data.","שולח מינימום נתוני אבחון."],
+ ["privacy","pro","Disable Tailored Experiences","No ads based on your diagnostic data.","בלי פרסומות לפי נתוני האבחון שלך."],
+ ["privacy","pro","Remove Start Menu Ads","No suggested or auto-installed promo apps.","בלי אפליקציות מוצעות ופרסומות."],
+ ["privacy","pro","Disable Activity History","Windows stops collecting what you open.","Windows מפסיק לאסוף מה שאתה פותח."],
+ ["privacy","pro","Disable Bing in Start Search","Start search only searches your PC.","החיפוש בתפריט התחל מחפש רק במחשב."]
+];
+const CATS = {gaming:["Gaming & FPS","גיימינג ו-FPS"],network:["Network","רשת"],system:["System","מערכת"],privacy:["Privacy","פרטיות"]};
+
+window.renderAuthMode = window.renderBuy = window.renderAccount = () => {};   // replaced by the Firebase module
+let LANG = localStorage.getItem("et_lang") || ((navigator.language||"").startsWith("he") ? "he" : "en");
+const t = k => (T[LANG] && T[LANG][k]) || T.en[k] || k;
+
+function applyLang(){
+  document.documentElement.lang = LANG;
+  document.documentElement.dir = LANG === "he" ? "rtl" : "ltr";
+  document.querySelectorAll("[data-t]").forEach(el => { const v = t(el.dataset.t); if (typeof v === "string") el.textContent = v; });
+  document.querySelectorAll(".lang button").forEach(b => b.classList.toggle("on", b.dataset.lang === LANG));
+  renderTweaks(); renderFaq(); renderMarquee(); renderAuthMode(); renderBuy(); renderAccount();
+}
+document.querySelectorAll(".lang button").forEach(b => b.onclick = () => { LANG = b.dataset.lang; localStorage.setItem("et_lang", LANG); applyLang(); });
+
+/* ═════════════════════ UI pieces ═════════════════════ */
+function renderMarquee(){
+  const names = TWEAKS.map(x => x[2]).concat(["Junk Cleaner","Startup Manager","Ping Test","DNS Switcher","AI Assistant","Restore Points"]);
+  const html = names.map(n => `<span>${n}</span>`).join("");
+  document.getElementById("track").innerHTML = html + html;
+}
+let twCat = "gaming";
+function renderTweaks(){
+  const tabs = document.getElementById("twTabs");
+  tabs.innerHTML = Object.keys(CATS).map(c => `<button class="${c===twCat?'on':''}" data-c="${c}">${CATS[c][LANG==='he'?1:0]} <span style="opacity:.6">${TWEAKS.filter(x=>x[0]===c).length}</span></button>`).join("");
+  tabs.querySelectorAll("button").forEach(b => b.onclick = () => { twCat = b.dataset.c; renderTweaks(); });
+  document.getElementById("twList").innerHTML = TWEAKS.filter(x => x[0] === twCat).map((x,i) =>
+    `<div class="tw" style="animation-delay:${i*40}ms"><i class="sw ${x[1]==='free'?'on':''}"></i><div><h4>${x[2]} <span class="tag ${x[1]}">${x[1].toUpperCase()}</span></h4><p>${LANG==='he'?x[4]:x[3]}</p></div></div>`).join("");
+}
+function renderFaq(){
+  document.getElementById("faqList").innerHTML = t("faq").map(([q,a]) =>
+    `<div class="q"><button><span>${q}</span><i>+</i></button><div>${a}</div></div>`).join("");
+  document.querySelectorAll(".q button").forEach(b => b.onclick = () => b.parentElement.classList.toggle("open"));
+}
+document.querySelectorAll("#showTabs button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("#showTabs button").forEach(x => x.classList.remove("on")); b.classList.add("on");
+  const img = document.getElementById("showImg"); img.style.opacity = 0;
+  setTimeout(() => { img.src = `/img/${b.dataset.img}.png`; img.onload = () => img.style.opacity = 1; }, 200);
+});
+function toast(msg, kind="ok"){
+  const el = document.getElementById("toast"); el.textContent = msg; el.className = "toast show " + kind;
+  clearTimeout(el._t); el._t = setTimeout(() => el.className = "toast", 3600);
+}
+function openModal(id){ document.getElementById(id).classList.add("show"); document.body.style.overflow = "hidden"; }
+function closeModal(id){ document.getElementById(id).classList.remove("show"); document.body.style.overflow = ""; }
+document.querySelectorAll(".modal").forEach(m => m.addEventListener("mousedown", e => { if (e.target === m) closeModal(m.id); }));
+document.addEventListener("keydown", e => { if (e.key === "Escape") document.querySelectorAll(".modal.show").forEach(m => closeModal(m.id)); });
+
+/* ═════════════════════ effects ═════════════════════ */
+document.getElementById("yr").textContent = new Date().getFullYear();
+const nav = document.getElementById("nav");
+addEventListener("scroll", () => nav.classList.toggle("scrolled", scrollY > 30), {passive:true});
+const glow = document.getElementById("glow");
+addEventListener("pointermove", e => { glow.style.transform = `translate(${e.clientX}px,${e.clientY}px)`; }, {passive:true});
+document.querySelectorAll(".cell").forEach(c => c.addEventListener("pointermove", e => {
+  const r = c.getBoundingClientRect(); c.style.setProperty("--x", (e.clientX - r.left) + "px"); c.style.setProperty("--y", (e.clientY - r.top) + "px");
+}));
+const stage = document.getElementById("stage"), screen = document.getElementById("screen");
+if (matchMedia("(min-width:961px)").matches) {
+  stage.addEventListener("pointermove", e => {
+    const r = stage.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+    screen.style.transform = `rotateY(${x * 18}deg) rotateX(${-y * 12}deg) scale(1.02)`;
+  });
+  stage.addEventListener("pointerleave", () => screen.style.transform = "");
+}
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  e.target.classList.add("in");
+  const n = e.target.querySelector("[data-count]");
+  if (n && !n._done) { n._done = 1; const end = +n.dataset.count, suf = n.dataset.suffix || ""; let s = null;
+    const step = ts => { s = s || ts; const p = Math.min((ts - s) / 1200, 1); n.textContent = Math.round(end * (1 - Math.pow(1 - p, 3))) + suf; if (p < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step); }
+  io.unobserve(e.target);
+}), {threshold:.15});
+document.querySelectorAll(".rv").forEach(el => io.observe(el));
+setInterval(() => { const sws = document.querySelectorAll("#toggleDemo .sw"); const i = Math.floor(Math.random() * sws.length); sws[i].classList.toggle("on"); }, 1600);
+
+/* animated background: perspective neon grid + particles */
+(() => {
+  const c = document.getElementById("bg"), x = c.getContext("2d"); let W, H, P = [], t0 = 0;
+  const DPR = Math.min(devicePixelRatio || 1, 2);
+  function size(){ W = c.width = innerWidth * DPR; H = c.height = innerHeight * DPR;
+    P = Array.from({length: Math.min(90, innerWidth / 14)}, () => ({x: Math.random() * W, y: Math.random() * H, v: .2 + Math.random() * .6, r: Math.random() * 1.6 + .4})); }
+  size(); addEventListener("resize", size);
+  function frame(ts){
+    const dt = ts - t0; t0 = ts;
+    x.clearRect(0, 0, W, H);
+    const hz = H * .62, sc = scrollY * DPR * .15;
+    // horizon glow
+    const g = x.createLinearGradient(0, hz - 220 * DPR, 0, H);
+    g.addColorStop(0, "rgba(30,143,255,0)"); g.addColorStop(.35, "rgba(30,143,255,.10)"); g.addColorStop(1, "rgba(0,200,255,.03)");
+    x.fillStyle = g; x.fillRect(0, hz - 220 * DPR, W, H);
+    // grid
+    x.lineWidth = 1 * DPR;
+    for (let i = -24; i <= 24; i++) {
+      const xb = W / 2 + i * 120 * DPR;
+      x.strokeStyle = `rgba(60,140,255,${.16 - Math.abs(i) * .005})`;
+      x.beginPath(); x.moveTo(W / 2 + i * 6 * DPR, hz); x.lineTo(xb * 1 + (xb - W / 2) * 2, H); x.stroke();
+    }
+    const off = ((ts * .04 + sc) % 60) / 60;
+    for (let j = 0; j < 14; j++) {
+      const p = Math.pow((j + off) / 14, 2.2), y = hz + p * (H - hz);
+      x.strokeStyle = `rgba(60,140,255,${.03 + p * .18})`;
+      x.beginPath(); x.moveTo(0, y); x.lineTo(W, y); x.stroke();
+    }
+    // particles
+    for (const p of P) {
+      p.y -= p.v * DPR * (dt ? dt / 16 : 1); if (p.y < -10) { p.y = H + 10; p.x = Math.random() * W; }
+      x.fillStyle = `rgba(120,200,255,${.25 + p.r * .2})`; x.beginPath(); x.arc(p.x, p.y, p.r * DPR, 0, 6.3); x.fill();
+    }
+    requestAnimationFrame(frame);
+  }
+  if (!matchMedia("(prefers-reduced-motion:reduce)").matches) requestAnimationFrame(frame);
+})();
+applyLang();
+</script>
+
+<!-- ═════════════════════ Firebase + API + PayPal ═════════════════════ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail,
+         signOut, updateProfile, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCpEnFML6oy0CAioMIPr2NZYlz_I7bhmu0",
+  authDomain: "empire-tweaks.firebaseapp.com",
+  projectId: "empire-tweaks",
+  storageBucket: "empire-tweaks.firebasestorage.app",
+  messagingSenderId: "259063189096",
+  appId: "1:259063189096:web:bac32ec4dbdbf401e235dd",
+  measurementId: "G-HF9GV4H9YN"
+};
+const API_HOSTS = ["empire-tweaks.onrender.com", "localhost", "127.0.0.1"];
+const API = API_HOSTS.includes(location.hostname) ? "" : "https://empire-tweaks.onrender.com";
+const FALLBACK_PAYPAL_CLIENT = "BAAZi4lqjVn0fgavoJLIKsFpqpiX9hEphBKpQ-6b6QE3TCy_cY7Ts9FCXl52e-KyMca6WN1a-ZtCT7FvSA";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+let USER = null, ACC = null, CFG = null, authMode = "signin";
+const params = new URLSearchParams(location.search);
+let LINK_CODE = (params.get("link") || "").toUpperCase();
+
+async function api(path, opts = {}) {
+  const headers = {"Content-Type": "application/json"};
+  if (USER) headers.Authorization = "Bearer " + await USER.getIdToken();
+  const r = await fetch(API + path, {method: opts.body ? "POST" : (opts.method || "GET"), headers, body: opts.body ? JSON.stringify(opts.body) : undefined});
+  let d = {}; try { d = await r.json(); } catch (e) {}
+  if (!r.ok && d.success === undefined) d.success = false;
+  return d;
+}
+
+/* ───── config (price, download, version) ───── */
+api("/api/config").then(c => {
+  CFG = c;
+  if (c.price) document.getElementById("price").textContent = c.price;
+  if (c.download_url) document.getElementById("dlBtn").href = c.download_url;
+  if (c.app_version) document.getElementById("ver").textContent = c.app_version;
+}).catch(() => {});
+document.getElementById("dlBtn").href = "https://github.com/DANIEL669568/empire-tweaks/releases/latest/download/EmpireTweaks.exe";
+
+/* ───── auth modal ───── */
+window.openAuth = (mode = "signin") => { authMode = mode; renderAuthMode(); document.getElementById("authErr").textContent = ""; openModal("authModal"); };
+window.setAuthMode = m => { authMode = m; renderAuthMode(); };
+window.renderAuthMode = () => {
+  const reset = authMode === "reset", up = authMode === "signup";
+  document.getElementById("authTitle").textContent = reset ? t("resetTitle") : up ? t("createAcc") : t("signIn");
+  document.getElementById("nameField").style.display = up ? "" : "none";
+  document.getElementById("passField").style.display = reset ? "none" : "";
+  document.getElementById("aPass").required = !reset;
+  document.getElementById("authBtn").textContent = reset ? t("resetBtn") : up ? t("createAcc") : t("signIn");
+  document.getElementById("authSwitch").innerHTML = reset ? `<a onclick="setAuthMode('signin')">${t("backToSignIn")}</a>` :
+    up ? `${t("haveAcc")} <a onclick="setAuthMode('signin')">${t("signIn")}</a>` : `${t("noAcc")} <a onclick="setAuthMode('signup')">${t("createAcc")}</a>`;
+};
+const niceErr = e => ({
+  "auth/invalid-credential": LANG === "he" ? "אימייל או סיסמה לא נכונים." : "Wrong email or password.",
+  "auth/wrong-password": LANG === "he" ? "סיסמה לא נכונה." : "Wrong password.",
+  "auth/user-not-found": LANG === "he" ? "אין חשבון עם האימייל הזה." : "No account with this email.",
+  "auth/email-already-in-use": LANG === "he" ? "כבר יש חשבון עם האימייל הזה." : "An account with this email already exists.",
+  "auth/weak-password": LANG === "he" ? "הסיסמה קצרה מדי (6 תווים לפחות)." : "Password is too short (min 6).",
+  "auth/popup-closed-by-user": "", "auth/unauthorized-domain": "This domain is not authorized in Firebase (Auth > Settings > Authorized domains)."
+}[e.code] ?? e.message);
+window.submitAuth = async ev => {
+  ev.preventDefault();
+  const email = aEmail.value.trim(), pass = aPass.value, btn = document.getElementById("authBtn"), er = document.getElementById("authErr");
+  er.textContent = ""; er.classList.remove("okmsg"); btn.disabled = true;
+  try {
+    if (authMode === "reset") { await sendPasswordResetEmail(auth, email); er.classList.add("okmsg"); er.textContent = t("resetSent"); }
+    else if (authMode === "signup") { const c = await createUserWithEmailAndPassword(auth, email, pass); if (aName.value.trim()) await updateProfile(c.user, {displayName: aName.value.trim()}); closeModal("authModal"); }
+    else { await signInWithEmailAndPassword(auth, email, pass); closeModal("authModal"); }
+  } catch (e) { er.textContent = niceErr(e); }
+  btn.disabled = false; return false;
+};
+window.googleSignIn = async () => {
+  try { await signInWithPopup(auth, new GoogleAuthProvider()); closeModal("authModal"); }
+  catch (e) { document.getElementById("authErr").textContent = niceErr(e); }
+};
+window.signOutNow = async () => { await signOut(auth); closeModal("accModal"); };
+
+/* ───── account ───── */
+onAuthStateChanged(auth, async u => {
+  USER = u; ACC = null;
+  renderNav(); renderBuy();
+  if (!u) { if (LINK_CODE) openAuth(); return; }
+  await loadAccount();
+  // migrate subscriptions bought on the old site (stored only in this browser)
+  const oldSub = localStorage.getItem("et_subscription");
+  if (oldSub && ACC && !ACC.pro) {
+    const r = await api("/api/subscription/activate", {body: {subscriptionID: oldSub}});
+    if (r.success) { ACC = r; localStorage.removeItem("et_subscription"); toast(t("activated")); renderAll(); }
+  }
+  if (LINK_CODE || location.hash === "#account") openAccount();
+});
+async function loadAccount(){
+  try { const r = await api("/api/account"); if (r.success) ACC = r; } catch (e) {}
+  renderAll();
+}
+function renderAll(){ renderNav(); renderBuy(); renderAccount(); }
+function initials(){ return ((USER && (USER.displayName || USER.email)) || "?").trim()[0].toUpperCase(); }
+function renderNav(){
+  const el = document.getElementById("navAuth");
+  el.innerHTML = USER ? `<div class="avatar ${ACC && ACC.pro ? "pro" : ""}" onclick="openAccount()" title="${USER.email}">${initials()}</div>`
+                      : `<button class="btn btn-g" onclick="openAuth()">${t("signIn")}</button>`;
+}
+window.openAccount = () => { if (!USER) { openAuth(); return; } renderAccount(); openModal("accModal"); };
+window.renderAccount = () => {
+  if (!USER) return;
+  const pro = ACC && ACC.pro, st = ACC ? ACC.status : "NONE";
+  document.getElementById("accAvatar").textContent = initials();
+  document.getElementById("accAvatar").className = "avatar" + (pro ? " pro" : "");
+  document.getElementById("accName").textContent = USER.displayName || (USER.email || "").split("@")[0];
+  document.getElementById("accEmail").textContent = USER.email || "";
+  const s = document.getElementById("accStatus");
+  const ending = pro && (st === "CANCELLED" || st === "SUSPENDED");
+  s.className = "status " + (ending ? "end" : pro ? "pro" : "free");
+  s.textContent = pro ? (ending ? "PRO · " + (LANG === "he" ? "מבוטל" : "cancelled") : "PRO") : "FREE";
+  const pu = ACC && ACC.paid_until ? new Date(ACC.paid_until * 1000).toLocaleDateString(LANG === "he" ? "he-IL" : "en-US", {day:"numeric", month:"short", year:"numeric"}) : "";
+  document.getElementById("accDateLbl").textContent = pro && pu ? (ending ? t("ends") : t("renews")) : "";
+  document.getElementById("accDate").textContent = pro ? pu : "";
+  document.getElementById("accKeyWrap").style.display = ACC && ACC.license_key ? "" : "none";
+  document.getElementById("accKey").textContent = ACC ? ACC.license_key : "";
+  document.getElementById("accBuy").style.display = pro ? "none" : "";
+  document.getElementById("accCancel").style.display = pro && !ending && ACC.subscription_id ? "" : "none";
+  document.getElementById("restoreBox").style.display = pro ? "none" : "";
+  document.getElementById("linkCard").style.display = LINK_CODE ? "" : "none";
+  document.getElementById("linkCode").textContent = LINK_CODE;
+};
+window.copyKey = () => { navigator.clipboard.writeText(ACC.license_key); toast(t("copied")); };
+window.confirmLink = async () => {
+  const b = document.getElementById("linkBtn"), er = document.getElementById("linkErr"); b.disabled = true; er.textContent = "";
+  const r = await api("/api/app/link/confirm", {body: {code: LINK_CODE}});
+  b.disabled = false;
+  if (r.success) { er.classList.add("okmsg"); er.textContent = t("linkDone"); toast(t("linkDone")); LINK_CODE = "";
+    history.replaceState(null, "", location.pathname + "#account"); setTimeout(renderAccount, 2500); }
+  else er.textContent = r.message || "Error";
+};
+window.cancelSub = async () => {
+  if (!confirm(t("cancelConfirm"))) return;
+  const r = await api("/api/subscription/cancel", {body: {}});
+  if (r.success) { ACC = r; toast(t("cancelled")); renderAll(); } else document.getElementById("accErr").textContent = r.message || "Error";
+};
+window.restoreSub = async () => {
+  const id = document.getElementById("restoreId").value.trim(), er = document.getElementById("restoreErr"); er.textContent = "";
+  const r = await api("/api/subscription/activate", {body: {subscriptionID: id}});
+  if (r.success) { ACC = r; toast(t("activated")); renderAll(); } else er.textContent = r.message || "Error";
+};
+
+/* ───── buying (PayPal subscription) ───── */
+window.goBuy = () => { document.getElementById("pricing").scrollIntoView({behavior: "smooth"}); setTimeout(() => document.getElementById("buyBtn").click(), 600); };
+window.renderBuy = () => {
+  const btn = document.getElementById("buyBtn"); if (!btn) return;
+  const pro = ACC && ACC.pro;
+  btn.querySelector("span").textContent = pro ? t("youArePro") : USER ? t("getPro") : t("signInToBuy");
+  btn.disabled = !!pro;
+  btn.style.display = (USER && !pro && ppShown) ? "none" : "";
+};
+let ppShown = false, ppLoaded = null;
+function loadPayPal(){
+  if (ppLoaded) return ppLoaded;
+  const cid = (CFG && CFG.paypal_client_id) || FALLBACK_PAYPAL_CLIENT;
+  ppLoaded = new Promise((ok, bad) => { const s = document.createElement("script");
+    s.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(cid)}&vault=true&intent=subscription`;
+    s.onload = ok; s.onerror = bad; document.head.appendChild(s); });
+  return ppLoaded;
+}
+document.getElementById("buyBtn").onclick = async () => {
+  if (!USER) { openAuth(); return; }
+  if (ACC && ACC.pro) return;
+  const btn = document.getElementById("buyBtn"); btn.innerHTML = '<span class="spin"></span>';
+  try { await loadPayPal(); } catch (e) { toast("PayPal failed to load", "bad"); renderBuy(); return; }
+  ppShown = true; btn.style.display = "none";
+  paypal.Buttons({
+    style: {shape: "pill", color: "gold", layout: "vertical", label: "subscribe"},
+    createSubscription: (d, a) => a.subscription.create({plan_id: (CFG && CFG.plan_id) || "P-37F11585C4970333YNKJNTIQ", custom_id: USER.uid}),
+    onApprove: async d => {
+      localStorage.setItem("et_subscription", d.subscriptionID);   // safety net – retried on next visit
+      const r = await api("/api/subscription/activate", {body: {subscriptionID: d.subscriptionID}});
+      if (r.success) { localStorage.removeItem("et_subscription"); ACC = r; renderAll(); toast(t("activated")); openAccount(); }
+      else toast(r.message || "Activation error – it will retry automatically.", "bad");
+    },
+    onError: () => toast(LANG === "he" ? "שגיאה בתשלום. נסה שוב." : "Payment error. Please try again.", "bad")
+  }).render("#paypal-buttons");
+};
+if (params.get("from") === "app" && location.hash === "#pricing") setTimeout(() => document.getElementById("pricing").scrollIntoView(), 300);
+
+applyLang();
+</script>
+</body>
+</html>
