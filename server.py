@@ -170,6 +170,16 @@ def public_account(uid, data, email=""):
     }
 
 
+@app.after_request
+def cache_headers(resp):
+    p = request.path
+    if p.startswith(("/vendor/", "/fonts/", "/img/")) or p == "/favicon.ico":
+        resp.headers["Cache-Control"] = "public, max-age=86400"
+    elif not p.startswith("/api/") and p != "/verify-license":
+        resp.headers["Cache-Control"] = "no-cache"   # always check for a new version of the page
+    return resp
+
+
 # ─────────────────────────── Website ───────────────────────────
 @app.route("/")
 def index():
