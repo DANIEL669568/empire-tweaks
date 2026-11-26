@@ -1636,7 +1636,7 @@ function startBackground3D(){
   if (!webglOK() || RM) return;
   loadFx().then(m => {
     const stops = [
-      {el: $("#hero"), shape: 0, x: innerWidth > 1100 ? 2.6 : 0},   // galaxy behind the hero
+      {el: $("#hero"), shape: 0, x: 0},                                // particle show behind the hero
       {el: $("#core"), shape: 1, x: 0},                                // assembles into the ET logo
       {el: $("#features"), shape: 2, x: 0},                            // sphere
       {el: $("#tweaks"), shape: 3, x: 0},                              // wave field
@@ -1871,7 +1871,7 @@ window.renderAccount = () => {
   const s = document.getElementById("accStatus");
   const ending = pro && (st === "CANCELLED" || st === "SUSPENDED");
   s.className = "status " + (ending ? "end" : pro ? "pro" : "free");
-  s.textContent = pro ? (ending ? "PRO · " + (LANG === "he" ? "מבוטל" : "cancelled") : "PRO") : "FREE";
+  s.textContent = pro ? (ending ? "PRO · " + (LANG === "he" ? "מבוטל" : "cancelled") : st === "OWNER" ? (LANG === "he" ? "PRO · בעלים" : "PRO · OWNER") : "PRO") : "FREE";
   const pu = ACC && ACC.paid_until ? new Date(ACC.paid_until * 1000).toLocaleDateString(LANG === "he" ? "he-IL" : "en-US", {day: "numeric", month: "short", year: "numeric"}) : "";
   document.getElementById("accDateLbl").textContent = pro && pu ? (ending ? t("ends") : t("renews")) : "";
   document.getElementById("accDate").textContent = pro ? pu : "";

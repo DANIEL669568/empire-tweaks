@@ -328,31 +328,44 @@ export function initBackground({ canvas, stops }) {
   measure(); addEventListener("resize", measure); addEventListener("load", measure); setTimeout(measure, 1500); setTimeout(measure, 4000);
 
   let t = 0, last = performance.now(), lastY = scrollY, spin = 0, rx = 0, ry = 0, gx = stops[0].x || 0, fade = 0, base = 0;
+  // Autopilot: the particles keep morphing on their own (no scroll / mouse needed).
+  const SEQ = [1, 2, 0, 4, 3];                 // logo → sphere → galaxy → ring → wave → logo …
+  const HOLD = 3.4, MORPH = 2.2, CYC = HOLD + MORPH;
+  let ph = 0;                                  // phase, in shapes
   function frame(now) {
     requestAnimationFrame(frame);
     if (document.hidden) { last = now; return; }
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    if (!RM) t += dt;
-    // where are we between two stops?
+    t += dt;
+    // horizontal offset still follows the section you're in
     const y = scrollY + innerHeight * 0.55;
     let i = 0; while (i < tops.length - 1 && y >= tops[i + 1]) i++;
-    const a = stops[i], b = stops[Math.min(i + 1, stops.length - 1)];
+    const sa = stops[i], sb = stops[Math.min(i + 1, stops.length - 1)];
     const segLen = Math.max(1, (tops[i + 1] ?? tops[i] + 1) - tops[i]);
     const raw = i >= tops.length - 1 ? 0 : clamp((y - tops[i]) / segLen);
-    const k = smooth(0.45, 1.0, raw);                       // hold the shape, then morph near the next section
-    uni.uA.value = a.shape; uni.uB.value = b.shape; uni.uT.value = k;
-    gx += (((a.x || 0) * (1 - k) + (b.x || 0) * k) - gx) * 0.08;
-    // scroll velocity → spin burst
+    const sk = smooth(0.45, 1.0, raw);
+    gx += (((sa.x || 0) * (1 - sk) + (sb.x || 0) * sk) - gx) * 0.05;
+    // scroll velocity → spin burst + faster morphing
     const v = scrollY - lastY; lastY = scrollY;
+    const sv = clamp(Math.abs(v) / 40, 0, 1);
     spin += (clamp(v / 60, -1, 1) * 0.06 - spin) * 0.08;
-    const mx = Math.abs(ndc.x) < 2 ? ndc.x : 0, my = Math.abs(ndc.y) < 2 ? ndc.y : 0;   // no pointer yet / touch → neutral
-    rx += (my * 0.12 - rx) * 0.04; ry += (mx * 0.2 - ry) * 0.04;
-    base += spin + (RM ? 0 : dt * 0.035);
+    ph += dt / CYC * (1 + sv * 2.5);
+    const idx = Math.floor(ph), frac = ph - idx;
+    const A = SEQ[idx % SEQ.length], B = SEQ[(idx + 1) % SEQ.length];
+    const k = smooth(HOLD / CYC, 1.0, frac);
+    uni.uA.value = A; uni.uB.value = B; uni.uT.value = k;
+    const a = { shape: A }, b = { shape: B };
+    // gentle autonomous sway + mouse parallax when there is a pointer
+    const mx = Math.abs(ndc.x) < 2 ? ndc.x : 0, my = Math.abs(ndc.y) < 2 ? ndc.y : 0;
+    const swX = Math.sin(t * 0.37) * 0.10, swY = Math.sin(t * 0.23 + 1.3) * 0.16;
+    rx += (my * 0.12 + swX - rx) * 0.04; ry += (mx * 0.2 + swY - ry) * 0.04;
+    base += spin + dt * 0.12;
     const logoW = (a.shape === 1 ? 1 - k : 0) + (b.shape === 1 ? k : 0);   // keep the logo facing the viewer
     const near = Math.round(base / (Math.PI * 2)) * Math.PI * 2;
     group.rotation.y = base + (near - base) * logoW + ry;
-    group.rotation.x = -rx + (a.shape === 0 && k < 0.5 ? 0.9 * (1 - k * 2) : 0) * 0.6 + (b.shape === 3 ? 0.35 * k : 0) + (a.shape === 3 ? 0.35 * (1 - k) : 0);
+    group.rotation.x = -rx + (a.shape === 0 ? 0.55 * (1 - k) : 0) + (b.shape === 0 ? 0.55 * k : 0) + (b.shape === 3 ? 0.35 * k : 0) + (a.shape === 3 ? 0.35 * (1 - k) : 0);
     group.position.x = gx;
+    group.position.y = Math.sin(t * 0.5) * 0.18;
     uni.uTime.value = t;
     fade = Math.min(1, fade + dt * 0.6);
     uni.uAlpha.value = fade * (MOBILE ? 0.75 : 0.95);

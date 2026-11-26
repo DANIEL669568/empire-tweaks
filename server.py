@@ -74,6 +74,28 @@ def current_user():
         return None
 
 
+# Owner accounts: PRO forever, no payment. Override with env OWNER_EMAILS="a@x.com,b@y.com".
+OWNER_EMAILS = {e.strip().lower() for e in os.environ.get("OWNER_EMAILS", "danielnamdar83@gmail.com").split(",") if e.strip()}
+
+
+def is_owner(email, verified=True):
+    return bool(verified) and (email or "").strip().lower() in OWNER_EMAILS
+
+
+def make_owner(uid, data, email):
+    """Give the owner account PRO + a license key, and remember it so the app's key check also sees it."""
+    changed = not data.get("owner") or not data.get("license_key")
+    data.update(owner=True, pro=True, status="OWNER", paid_until=0)
+    data.setdefault("email", email)
+    if not data.get("license_key"):
+        data["license_key"] = new_license_key()
+    if changed and db is not None:
+        user_doc(uid).set(data, merge=True)
+        db.collection("licenses").document(data["license_key"]).set(
+            {"uid": uid, "email": data.get("email") or email, "active": True}, merge=True)
+    return data
+
+
 def new_license_key():
     chars = string.ascii_uppercase + string.digits
     return "ET-" + "-".join("".join(secrets.choice(chars) for _ in range(4)) for _ in range(3))
@@ -138,6 +160,9 @@ def user_doc(uid):
 
 def refresh_user(uid: str, data: dict, force=False) -> dict:
     """Re-check the PayPal subscription if it's time; returns the updated user data."""
+    if data.get("owner"):
+        data.update(pro=True, status="OWNER")
+        return data
     sub_id = data.get("subscription_id")
     if not sub_id or not PAYPAL_SECRET:
         return data
@@ -221,6 +246,8 @@ def api_account():
         return err("Please sign in again.", 401)
     snap = user_doc(u["uid"]).get()
     data = snap.to_dict() if snap.exists else {"email": u.get("email", "")}
+    if is_owner(u.get("email"), u.get("email_verified")):
+        data = make_owner(u["uid"], data, u.get("email", ""))
     data = refresh_user(u["uid"], data)
     return jsonify(public_account(u["uid"], data, u.get("email", "")))
 
@@ -337,6 +364,7 @@ def link_confirm():
             return err("This code expired. Click 'Sign in' in the app again.", 404)
         _links[code]["uid"] = u["uid"]
         _links[code]["email"] = u.get("email", "")
+        _links[code]["verified"] = bool(u.get("email_verified"))
     return jsonify({"success": True})
 
 
@@ -351,10 +379,17 @@ def link_poll():
         if not l["uid"]:
             return jsonify({"success": False, "pending": True})
         _links.pop(code, None)
-        uid, email = l["uid"], l.get("email", "")
+        uid, email, verified = l["uid"], l.get("email", ""), l.get("verified", False)
+    return jsonify(app_account(uid, email, verified))
+
+
+def app_account(uid, email, verified):
+    """Account data for the desktop app – makes sure the account has a license key."""
     ref = user_doc(uid)
     snap = ref.get()
     data = snap.to_dict() if snap.exists else {"email": email}
+    if is_owner(email, verified):
+        data = make_owner(uid, data, email)
     if not data.get("license_key"):
         # every account gets a key so the app can stay linked; it unlocks PRO only while subscribed
         data["license_key"] = new_license_key()
@@ -363,7 +398,16 @@ def link_poll():
         db.collection("licenses").document(data["license_key"]).set({"uid": uid, "email": data["email"],
                                                                       "active": bool(data.get("pro"))})
     data = refresh_user(uid, data)
-    return jsonify(public_account(uid, data, email))
+    return public_account(uid, data, email)
+
+
+@app.post("/api/app/login")
+def app_login():
+    """The desktop app signs in directly (email + password via Firebase) and sends the ID token here."""
+    u = current_user()
+    if not u:
+        return err("Sign-in failed. Check your email and password.", 401)
+    return jsonify(app_account(u["uid"], u.get("email", ""), u.get("email_verified")))
 
 
 @app.get("/api/health")
